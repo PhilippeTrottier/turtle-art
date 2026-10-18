@@ -2,8 +2,9 @@
 
 Procedural art made by a turtle walking on a hexagonal grid.
 
-> **Status:** project definition. No code yet. This file records every
-> decision made so far; the code will follow it.
+> **Status:** build skeleton. The project builds and runs its unit tests; the
+> turtle itself is not written yet. This file records every decision made so
+> far; the code follows it.
 
 ## What it does
 
@@ -71,6 +72,43 @@ tile is how the grid feeds back into the walk, as in
 | `--out`    | Path of the SVG file to write            |
 
 Defaults will be picked so that running with no options makes a picture.
+
+## Building and testing
+
+You need:
+
+- CMake 3.25 or newer.
+- A C++20 compiler: MSVC (Visual Studio 2022 with *Desktop development with
+  C++*) on Windows, GCC or Clang plus Ninja on Linux/macOS.
+- [vcpkg](https://learn.microsoft.com/vcpkg/get_started/get-started), with the
+  `VCPKG_ROOT` environment variable pointing to it. CMake installs the
+  packages listed in `vcpkg.json` on the first configure.
+
+Pick the preset for your platform (`msvc`, `gcc` or `clang`) and run:
+
+```bash
+cmake --preset msvc
+```
+
+```bash
+cmake --build --preset msvc
+```
+
+```bash
+ctest --preset msvc
+```
+
+Build output goes to `build/<preset>/`, which git ignores.
+
+### Repository layout
+
+| Path                 | Contents                                         |
+|----------------------|--------------------------------------------------|
+| `src/`               | The program's logic, built as `turtle_art_lib`   |
+| `tests/`             | GoogleTest unit tests, one `*_test.cc` per file  |
+| `CMakeLists.txt`     | Top-level build, shared compiler settings        |
+| `CMakePresets.json`  | Configure/build/test presets per compiler        |
+| `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
 
 ## Why this repository exists
 
