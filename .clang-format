@@ -1,0 +1,3 @@
+# Google C++ Style Guide formatting. Run clang-format on changed files
+# before committing (see README).
+BasedOnStyle: Google
