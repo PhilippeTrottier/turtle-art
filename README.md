@@ -104,6 +104,24 @@ ctest --preset msvc
 
 Build output goes to `build/<preset>/`, which git ignores.
 
+### Formatting and linting
+
+- **clang-tidy** runs automatically on every file as it compiles, using the
+  checks in `.clang-tidy`. Any finding fails the build. CMake finds
+  clang-tidy on the `PATH`, or next to MSVC (Visual Studio ships it in
+  `VC\Tools\Llvm\x64\bin`). To build without it, configure with
+  `-DTURTLE_ART_CLANG_TIDY=OFF`.
+- **clang-format** applies the Google style from `.clang-format`. Run it on
+  the files you changed before committing:
+
+  ```bash
+  clang-format -i src/*.h src/*.cc tests/*.cc
+  ```
+
+  On Windows it is not on the `PATH` by default; use the copy at
+  `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-format.exe`
+  (adjust the edition if yours is not Community).
+
 ### Repository layout
 
 | Path                 | Contents                                         |
