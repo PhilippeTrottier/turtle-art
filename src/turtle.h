@@ -1,7 +1,7 @@
 #ifndef TURTLE_ART_SRC_TURTLE_H_
 #define TURTLE_ART_SRC_TURTLE_H_
 
-#include <optional>
+#include <deque>
 
 #include "color.h"
 #include "direction.h"
@@ -30,8 +30,9 @@ class Turtle {
   // Returns the color the turtle paints with.
   Color color() const { return color_; }
 
-  // Takes one step: senses the colors of the last 3 tiles, applies the
-  // action `rules` gives for them, paints the current tile, and moves one
+  // Takes one step: senses the colors of the last rules.history_length()
+  // tiles, applies the action `rules` gives for them (changing color cycles
+  // through rules.paint_count() paints), paints the current tile, and moves one
   // tile forward, wrapping around if `grid` wraps. If the move would leave a
   // grid that does not wrap, the turtle stays put and Step returns false;
   // otherwise it returns true.
@@ -43,10 +44,11 @@ class Turtle {
   Hex position_;
   Direction heading_ = Direction::kEast;
   Color color_ = Color::kPaint1;
-  // The tiles visited before the current one. std::optional (C++17) holds
-  // either a value or nothing: here, nothing means "not visited yet".
-  std::optional<Hex> one_back_;
-  std::optional<Hex> two_back_;
+  // The tiles visited before the current one, oldest first; at most
+  // history length - 1 of them. std::deque is a sequence with fast insertion
+  // and removal at both ends: new tiles go in at the back, old ones leave
+  // from the front.
+  std::deque<Hex> previous_;
 };
 
 // Makes `turtle` take up to `max_steps` steps on `grid`, stopping early if

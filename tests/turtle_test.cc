@@ -13,8 +13,7 @@ namespace turtle_art {
 namespace {
 
 // A new RuleTable maps everything to kKeep, so tests only set the entries
-// they care about. A new turtle's first step senses three unpainted tiles,
-// which is the default SensedColors{}.
+// they care about. A new turtle's first step senses only unpainted tiles.
 
 TEST(TurtleTest, StartsAtCenterHeadingEastWithPaint1) {
   const Turtle turtle;
@@ -40,7 +39,8 @@ TEST(TurtleTest, StepWithKeepMovesForward) {
 TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
   Grid grid(3);
   RuleTable rules;
-  rules.SetAction({}, Action::kTurnLeft);
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+                  Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), Direction::kNorthEast);
@@ -50,7 +50,8 @@ TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
 TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
   Grid grid(3);
   RuleTable rules;
-  rules.SetAction({}, Action::kTurnRight);
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+                  Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), Direction::kSouthEast);
@@ -60,7 +61,8 @@ TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
 TEST(TurtleTest, StepWithChangeColorPaintsWithNextColor) {
   Grid grid(3);
   RuleTable rules;
-  rules.SetAction({}, Action::kChangeColor);
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+                  Action::kChangeColor);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint2);
@@ -71,7 +73,8 @@ TEST(TurtleTest, StepSensesColorOfCurrentTile) {
   Grid grid(3);
   grid.Paint(Hex{}, Color::kPaint3);
   RuleTable rules;
-  rules.SetAction({.current = Color::kPaint3}, Action::kTurnRight);
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kPaint3},
+                  Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), Direction::kSouthEast);
@@ -80,7 +83,8 @@ TEST(TurtleTest, StepSensesColorOfCurrentTile) {
 TEST(TurtleTest, SecondStepSensesPreviousTile) {
   Grid grid(3);
   RuleTable rules;
-  rules.SetAction({.one_back = Color::kPaint1}, Action::kTurnRight);
+  rules.SetAction({Color::kUnpainted, Color::kPaint1, Color::kUnpainted},
+                  Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   turtle.Step(grid, rules);
@@ -90,7 +94,7 @@ TEST(TurtleTest, SecondStepSensesPreviousTile) {
 TEST(TurtleTest, ThirdStepSensesTileTwoBack) {
   Grid grid(3);
   RuleTable rules;
-  rules.SetAction({.two_back = Color::kPaint1, .one_back = Color::kPaint1},
+  rules.SetAction({Color::kPaint1, Color::kPaint1, Color::kUnpainted},
                   Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
@@ -132,6 +136,39 @@ TEST(TurtleTest, WalkOnWrappingGridTakesAllSteps) {
   Grid grid(1, EdgeMode::kWrap);
   Turtle turtle;
   EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10), 10);
+}
+
+TEST(TurtleTest, OneTileHistorySensesOnlyCurrentTile) {
+  Grid grid(3);
+  RuleTable rules(4, 1);
+  rules.SetAction({Color::kUnpainted}, Action::kTurnLeft);
+  Turtle turtle;
+  turtle.Step(grid, rules);
+  EXPECT_EQ(turtle.heading(), Direction::kNorthEast);
+}
+
+TEST(TurtleTest, FourTileHistorySensesThreePreviousTiles) {
+  Grid grid(5);
+  RuleTable rules(4, 4);
+  rules.SetAction(
+      {Color::kPaint1, Color::kPaint1, Color::kPaint1, Color::kUnpainted},
+      Action::kTurnRight);
+  Turtle turtle;
+  turtle.Step(grid, rules);
+  turtle.Step(grid, rules);
+  turtle.Step(grid, rules);
+  turtle.Step(grid, rules);
+  EXPECT_EQ(turtle.heading(), Direction::kSouthEast);
+}
+
+TEST(TurtleTest, ChangeColorWithOnePaintKeepsPaint1) {
+  Grid grid(3);
+  RuleTable rules(1, 3);
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+                  Action::kChangeColor);
+  Turtle turtle;
+  turtle.Step(grid, rules);
+  EXPECT_EQ(turtle.color(), Color::kPaint1);
 }
 
 }  // namespace

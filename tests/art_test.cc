@@ -22,5 +22,24 @@ TEST(ArtTest, ZeroStepsGiveUnpaintedGrid) {
   EXPECT_EQ(MakeArt({.seed = 3, .steps = 0, .radius = 2}), ToSvg(Grid(2)));
 }
 
+TEST(ArtTest, WrappingChangesTheImage) {
+  EXPECT_NE(MakeArt({.seed = 1, .steps = 200, .radius = 3}),
+            MakeArt({.seed = 1,
+                     .steps = 200,
+                     .radius = 3,
+                     .edge_mode = EdgeMode::kWrap}));
+}
+
+TEST(ArtTest, PaintCountChangesTheImage) {
+  EXPECT_NE(MakeArt({.seed = 3, .steps = 200, .radius = 5}),
+            MakeArt({.seed = 3, .steps = 200, .radius = 5, .paint_count = 7}));
+}
+
+TEST(ArtTest, HistoryLengthChangesTheImage) {
+  EXPECT_NE(
+      MakeArt({.seed = 3, .steps = 200, .radius = 5}),
+      MakeArt({.seed = 3, .steps = 200, .radius = 5, .history_length = 2}));
+}
+
 }  // namespace
 }  // namespace turtle_art

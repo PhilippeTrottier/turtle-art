@@ -1,6 +1,8 @@
 #include "turtle.h"
 
+#include <cstddef>
 #include <optional>
+#include <vector>
 
 #include "action.h"
 #include "color.h"
@@ -10,23 +12,18 @@
 #include "rule_table.h"
 
 namespace turtle_art {
-namespace {
-
-// Returns the color of `tile` on `grid`, or kUnpainted if there is no tile.
-Color ColorOrUnpainted(const Grid& grid, std::optional<Hex> tile) {
-  // An optional converts to bool: true when it holds a value. `*tile` then
-  // reads that value.
-  return tile ? grid.ColorAt(*tile) : Color::kUnpainted;
-}
-
-}  // namespace
 
 bool Turtle::Step(Grid& grid, const RuleTable& rules) {
-  const SensedColors sensed = {
-      .two_back = ColorOrUnpainted(grid, two_back_),
-      .one_back = ColorOrUnpainted(grid, one_back_),
-      .current = grid.ColorAt(position_),
-  };
+  // Sense: the colors of the last history_length() tiles, oldest first.
+  // Tiles not visited yet (at the start of the walk) count as unpainted.
+  const auto history_length = static_cast<std::size_t>(rules.history_length());
+  std::vector<Color> sensed;
+  const std::size_t not_visited_yet = history_length - 1 - previous_.size();
+  sensed.insert(sensed.end(), not_visited_yet, Color::kUnpainted);
+  for (const Hex tile : previous_) {
+    sensed.push_back(grid.ColorAt(tile));
+  }
+  sensed.push_back(grid.ColorAt(position_));
 
   switch (rules.ActionFor(sensed)) {
     case Action::kKeep:
@@ -38,7 +35,7 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
       heading_ = TurnRight(heading_);
       break;
     case Action::kChangeColor:
-      color_ = NextPaint(color_);
+      color_ = NextPaint(color_, rules.paint_count());
       break;
   }
 
@@ -48,8 +45,10 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
   if (!next) {
     return false;
   }
-  two_back_ = one_back_;
-  one_back_ = position_;
+  previous_.push_back(position_);
+  if (previous_.size() >= history_length) {
+    previous_.pop_front();
+  }
   position_ = *next;
   return true;
 }

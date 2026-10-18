@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <string>
 
+#include "grid.h"
+#include "rule_table.h"
+
 namespace turtle_art {
 
 // Everything that decides what a picture looks like. The defaults are the
@@ -14,9 +17,15 @@ struct ArtSettings {
   std::uint32_t seed = 228;
   int steps = 10000;  // Maximum number of turtle steps.
   int radius = 50;    // Grid radius in tiles; must be zero or more.
+  EdgeMode edge_mode = EdgeMode::kStop;  // What happens at the grid's edge.
+  // Number of palette colors, in [1, kMaxPaintCount].
+  int paint_count = kDefaultPaintCount;
+  // Number of recent tiles, the current one included, whose colors decide
+  // each action, in [1, kMaxHistoryLength].
+  int history_length = kDefaultHistoryLength;
 };
 
-// Runs a turtle with a rule table made from `settings.seed` on a fresh grid,
+// Runs a turtle with a rule table made from the settings on a fresh grid,
 // and returns the result as an SVG image. The same settings always give the
 // same image.
 std::string MakeArt(const ArtSettings& settings);
