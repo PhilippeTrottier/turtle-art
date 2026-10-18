@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gallery-windows",
+      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "runtimeArgs": ["scripts/make-gallery.sh", "--serve"],
+      "port": 8000
+    },
+    {
+      "name": "gallery",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["scripts/make-gallery.sh", "--serve"],
+      "port": 8000
+    }
+  ]
+}
