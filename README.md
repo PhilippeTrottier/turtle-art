@@ -106,6 +106,10 @@ ctest --preset msvc
 Build output goes to `build/<preset>/`, which git ignores. The program is
 `build/<preset>/src/turtle-art` (`.exe` on Windows).
 
+To render a few sample pictures and a page showing them, run
+`scripts/make-gallery.sh` (bash; Git Bash on Windows) after building, then
+open `gallery/demo.html`.
+
 ### Formatting and linting
 
 - **clang-tidy** runs automatically on every file as it compiles, using the
@@ -133,6 +137,7 @@ Build output goes to `build/<preset>/`, which git ignores. The program is
 | `CMakeLists.txt`     | Top-level build, shared compiler settings        |
 | `CMakePresets.json`  | Configure/build/test presets per compiler        |
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
+| `scripts/`           | `make-gallery.sh`: renders samples and `gallery/demo.html` |
 | `QUESTIONS.md`       | Open questions and assumptions awaiting review   |
 
 ### Code map
