@@ -1,6 +1,7 @@
 # The program's logic, as a library so the tests can link to it.
 add_library(turtle_art_lib
-  direction.cc)
+  direction.cc
+  hex.cc)
 
 # PUBLIC: targets linking turtle_art_lib also get this include path, so they
 # can write #include "direction.h".
