@@ -108,7 +108,11 @@ Build output goes to `build/<preset>/`, which git ignores. The program is
 
 To render a few sample pictures and a page showing them, run
 `scripts/make-gallery.sh` (bash; Git Bash on Windows) after building, then
-open `gallery/demo.html`.
+open `gallery/demo.html`. Add `--serve` to also serve the gallery at
+<http://localhost:8000/demo.html> (needs Python 3), for browsers that will
+not open local files. `.claude/launch.json` runs the same thing for Claude
+Code's built-in browser; on Windows it calls Git Bash by its full path,
+because plain `bash` there may be WSL's, which cannot write Windows paths.
 
 ### Formatting and linting
 

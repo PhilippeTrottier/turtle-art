@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Renders a few sample pictures and a gallery page that shows them.
 #
-# Usage: scripts/make-gallery.sh [path/to/turtle-art]
+# Usage: scripts/make-gallery.sh [--serve] [path/to/turtle-art]
 #
-# Build the program first (see README). Without an argument, the script uses
-# the first build it finds under build/. Output goes to gallery/ (ignored by
-# git); open gallery/demo.html in a browser.
+# Build the program first (see README). Without a path, the script uses the
+# first build it finds under build/. Output goes to gallery/ (ignored by git).
+#
+# With --serve, it then serves gallery/ at http://localhost:8000/demo.html
+# (Python's built-in web server; stop it with Ctrl+C). Browsers, and Claude's
+# built-in browser in particular, may refuse to open local files directly.
 #
 # Runs with bash on Linux and macOS, and with Git Bash on Windows.
 
@@ -15,7 +18,16 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-program="${1:-}"
+serve=false
+program=""
+for arg in "$@"; do
+  if [[ "$arg" == "--serve" ]]; then
+    serve=true
+  else
+    program="$arg"
+  fi
+done
+
 if [[ -z "$program" ]]; then
   for candidate in "$repo_root"/build/*/src/turtle-art "$repo_root"/build/*/src/turtle-art.exe; do
     if [[ -x "$candidate" ]]; then
@@ -33,15 +45,17 @@ out_dir="$repo_root/gallery"
 mkdir -p "$out_dir"
 
 # Each sample: "seed steps radius caption". Seeds 228, 137, 146, 78 and 292
-# covered the most tiles in a survey of seeds 1-300 (see QUESTIONS.md);
-# seed 11 shows the far more common short loop, on a small grid.
+# covered the most tiles in a survey of seeds 1-300 (see QUESTIONS.md).
+# Seeds 11 and 6 show the two common endings, on a small grid: walking off
+# the edge, and looping on a few tiles.
 samples=(
   "228 10000 50 Default seed: one of the few that roam widely"
   "137 10000 50 Second-largest area among seeds 1-300"
   "146 10000 50 Seed 146"
   "78 10000 50 Seed 78"
   "292 10000 50 Seed 292"
-  "11 10000 12 Typical seed: a short loop, shown on a small grid"
+  "11 10000 12 Typical ending 1: the turtle walks off the edge"
+  "6 10000 12 Typical ending 2: the turtle loops on a few tiles"
 )
 
 figures=""
@@ -111,3 +125,22 @@ cat > "$out_dir/demo.html" <<EOF
 </html>
 EOF
 echo "wrote gallery/demo.html"
+
+if [[ "$serve" == true ]]; then
+  # The Python command is python3 on Linux and macOS, often python on
+  # Windows; use the first one that exists.
+  python=""
+  for candidate in python3 python py; do
+    if command -v "$candidate" > /dev/null; then
+      python="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$python" ]]; then
+    echo "error: --serve needs Python 3 on the PATH" >&2
+    exit 1
+  fi
+  echo "serving http://localhost:8000/demo.html (Ctrl+C to stop)"
+  # `exec` replaces this script with the server, so stopping it ends both.
+  exec "$python" -m http.server 8000 --bind 127.0.0.1 --directory "$out_dir"
+fi
