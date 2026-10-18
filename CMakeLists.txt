@@ -31,6 +31,11 @@ if(TURTLE_ART_CLANG_TIDY)
   if(CLANG_TIDY_EXE)
     message(STATUS "clang-tidy: ${CLANG_TIDY_EXE}")
     set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    if(MSVC)
+      # clang-tidy ignores the /EHsc in MSVC's compile command, then
+      # rejects any try/catch (CLI11 has some). Passing /EHsc again fixes it.
+      list(APPEND CMAKE_CXX_CLANG_TIDY "--extra-arg=/EHsc")
+    endif()
   else()
     message(WARNING "clang-tidy not found; building without it. "
                     "Install it or configure with -DTURTLE_ART_CLANG_TIDY=OFF.")
