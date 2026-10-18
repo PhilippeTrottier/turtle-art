@@ -4,9 +4,13 @@
 #include <CLI/CLI.hpp>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 
 #include "art.h"
+#include "color.h"
+#include "grid.h"
+#include "rule_table.h"
 
 // clang-tidy warns that exceptions may escape main. Apart from the CLI11
 // parse errors caught below, the only ones possible are failures such as
@@ -27,6 +31,25 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
   app.add_option("--radius", settings.radius, "Grid radius in tiles")
       ->capture_default_str()
       ->check(CLI::NonNegativeNumber);
+  // CheckedTransformer turns each word into its enum value and rejects any
+  // other word.
+  const std::map<std::string, turtle_art::EdgeMode> edge_modes = {
+      {"stop", turtle_art::EdgeMode::kStop},
+      {"wrap", turtle_art::EdgeMode::kWrap},
+  };
+  app.add_option("--edge", settings.edge_mode,
+                 "At the grid's edge: stop the walk, or wrap around")
+      ->transform(CLI::CheckedTransformer(edge_modes))
+      ->default_str("stop");
+  app.add_option("--colors", settings.paint_count,
+                 "Number of palette colors the turtle paints with")
+      ->capture_default_str()
+      ->check(CLI::Range(1, turtle_art::kMaxPaintCount));
+  app.add_option("--history", settings.history_length,
+                 "Number of recent tiles (current one included) whose colors "
+                 "decide each move")
+      ->capture_default_str()
+      ->check(CLI::Range(1, turtle_art::kMaxHistoryLength));
   app.add_option("--out", out_path, "Path of the SVG file to write")
       ->capture_default_str();
 
