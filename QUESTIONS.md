@@ -65,3 +65,35 @@ README or the code, and the entry is deleted.
     instead of computed with sin/cos, so output is identical everywhere.
 14. **Question:** `std::format` needs GCC 13+, Clang 17+ (libc++) or MSVC
     19.29+. OK as the minimum compilers? Only MSVC is verified so far.
+
+## The art itself (most important)
+
+15. **Question — most seeds make tiny pictures.** Across seeds 1–300 at the
+    defaults (radius 50, 10,000 steps), the number of tiles painted was:
+    under 50 for 113 seeds, 50–499 for 183, 500–1999 for 3, and 2000+ for
+    1 (seed 228: 2,563 tiles, all 4 colors). The turtle almost always falls
+    into a short loop. That follows from the rule as specified: the two
+    previous tiles always hold the turtle's own recent colors, so only
+    the current tile feeds the grid back into the walk, and a loop that
+    repaints with the same color never changes. Ideas for v2, none built:
+    - paint the tile with the *next* color after its current one
+      (Langton's-ant style), so revisits always change the grid;
+    - sense more of the grid (e.g. the tile ahead) instead of history;
+    - weight actions (fewer turns, more keep);
+    - search seeds automatically, or report steps/tiles covered.
+16. **Assumption:** because of 15, the default seed is 228 instead of 1, so
+    running with no options gives an interesting picture. I could not view
+    the SVG (the built-in browser cannot open local files); please open
+    `turtle-art.svg` and check that it looks right.
+17. **Assumption:** defaults are `--steps 10000 --radius 50 --out
+    turtle-art.svg`. A radius-50 SVG is about 1.2 MB, since every tile is
+    drawn.
+
+## Command line
+
+18. **Assumption:** bad options print CLI11's message and exit with CLI11's
+    code (e.g. 105 for an out-of-range value); a file that cannot be
+    written exits with 1. `main` silences clang-tidy's
+    `bugprone-exception-escape` with a commented `NOLINT`.
+19. **Note:** clang-tidy ignores MSVC's `/EHsc`, so CMake passes it again
+    (`--extra-arg=/EHsc`); without that, CLI11's try/catch fails the lint.
