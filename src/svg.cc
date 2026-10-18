@@ -57,9 +57,13 @@ Point CenterOf(Hex hex) {
           .y = kTileSize * 1.5 * hex.r};
 }
 
-// Returns one SVG <polygon> element drawing `hex` filled with `color`.
-std::string Polygon(Hex hex, Color color) {
-  const Point center = CenterOf(hex);
+// Returns the <defs> and <style> elements every image starts with.
+//
+// The hexagon is defined once, centered on {0, 0}, and each tile is a short
+// <use> element that places a copy of it. That keeps a large image several
+// times smaller than one full <polygon> per tile. Colors are CSS classes:
+// class "c0" is kUnpainted, "c1" kPaint1, and so on.
+std::string Header() {
   std::string points;
   // A range-based for loop (C++11) visits each element of the array.
   for (const Point& corner : kCorners) {
@@ -68,16 +72,29 @@ std::string Polygon(Hex hex, Color color) {
     }
     // std::format (C++20) builds a string from a pattern; {:.2f} prints a
     // number with 2 decimals.
-    points +=
-        std::format("{:.2f},{:.2f}", center.x + corner.x, center.y + corner.y);
+    points += std::format("{:.2f},{:.2f}", corner.x, corner.y);
   }
-  const std::string_view fill = kFills.at(static_cast<std::size_t>(color));
-  // The stroke, in the fill color, covers the thin seams that anti-aliasing
-  // would otherwise leave between neighboring tiles.
+  std::string styles;
+  for (std::size_t i = 0; i < kFills.size(); ++i) {
+    // The stroke, in the fill color, covers the thin seams that
+    // anti-aliasing would otherwise leave between neighboring tiles. In a
+    // format pattern, {{ and }} print literal braces.
+    styles +=
+        std::format(".c{}{{fill:{};stroke:{}}}", i, kFills.at(i), kFills.at(i));
+  }
   return std::format(
-      "  <polygon points=\"{}\" fill=\"{}\" stroke=\"{}\" "
-      "stroke-width=\"0.5\"/>\n",
-      points, fill, fill);
+      "  <defs><polygon id=\"t\" points=\"{}\" stroke-width=\"0.5\"/>"
+      "</defs>\n"
+      "  <style>{}</style>\n",
+      points, styles);
+}
+
+// Returns one <use> element drawing `hex` in `color`.
+std::string Tile(Hex hex, Color color) {
+  const Point center = CenterOf(hex);
+  return std::format(
+      "  <use href=\"#t\" x=\"{:.2f}\" y=\"{:.2f}\" class=\"c{}\"/>\n",
+      center.x, center.y, static_cast<int>(color));
 }
 
 }  // namespace
@@ -94,13 +111,14 @@ std::string ToSvg(const Grid& grid) {
       "height=\"{:.2f}\" viewBox=\"{:.2f} {:.2f} {:.2f} {:.2f}\">\n",
       2 * half_width, 2 * half_height, -half_width, -half_height,
       2 * half_width, 2 * half_height);
+  svg += Header();
   // Visit every (q, r) in the square that encloses the hexagon, and keep
   // those that are tiles of the grid.
   for (int r = -radius; r <= radius; ++r) {
     for (int q = -radius; q <= radius; ++q) {
       const Hex hex = {.q = q, .r = r};
       if (grid.Contains(hex)) {
-        svg += Polygon(hex, grid.ColorAt(hex));
+        svg += Tile(hex, grid.ColorAt(hex));
       }
     }
   }
