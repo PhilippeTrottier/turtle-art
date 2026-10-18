@@ -94,21 +94,22 @@ sample() {
 }
 
 # --- The themes ------------------------------------------------------------
-# Seeds come from a survey of seeds 1-100 per setting, ranked by how much of
-# the grid they paint (see QUESTIONS.md).
+# Seeds come from a survey of seeds 1-100 per setting, ranked by color
+# entropy: how evenly the tiles spread over the colors, so flat one-color
+# fills and tiny loops rank low (see QUESTIONS.md).
 
 theme highlights "Highlights" \
   "A few favorites from every theme. Wrapping edges (<code>--edge wrap</code>) keep the turtle going, which gives most of the large pictures."
 sample "Default settings" --seed 228
 sample "Wrap: diagonal highways" --seed 8 --edge wrap
 sample "Wrap: long lines around a knot" --seed 30 --edge wrap
-sample "Wrap: whole grid, 4 colors" --seed 20 --edge wrap
-sample "8 colors" --seed 68 --edge wrap --colors 8
-sample "6 colors" --seed 45 --edge wrap --colors 6
-sample "3 colors, partly covered" --seed 87 --edge wrap --colors 3
-sample "5-tile history" --seed 52 --edge wrap --history 5
-sample "4-tile history, partly covered" --seed 19 --edge wrap --history 4
-sample "Big grid (radius 100)" --seed 30 --edge wrap --radius 100 --steps 40000
+sample "Wrap: stripes" --seed 68 --edge wrap
+sample "8 colors" --seed 9 --edge wrap --colors 8
+sample "3 colors" --seed 84 --edge wrap --colors 3
+sample "6-tile history" --seed 77 --edge wrap --history 6
+sample "5-tile history" --seed 17 --edge wrap --history 5
+sample "4-tile history" --seed 19 --edge wrap --history 4
+sample "Small grid (radius 12)" --seed 30 --edge wrap --radius 12 --steps 3000
 
 theme edges "Edges: stop vs wrap" \
   "The same seed with <code>--edge stop</code> (the walk ends at the edge) and then <code>--edge wrap</code> (it comes back in on the opposite side). Most stopping walks end within a few hundred steps."
@@ -119,54 +120,57 @@ done
 
 theme sizes "Grid size" \
   "Radius 12, 25, 50 and 100 tiles, all wrapping. Steps grow with the grid (about 4 per tile), so each picture has time to develop."
-sample "Radius 12" --seed 8 --edge wrap --radius 12 --steps 3000
-sample "Radius 12" --seed 100 --edge wrap --radius 12 --steps 3000
-sample "Radius 12" --seed 11 --edge wrap --radius 12 --steps 3000
-sample "Radius 25" --seed 20 --edge wrap --radius 25 --steps 6000
+sample "Radius 12" --seed 30 --edge wrap --radius 12 --steps 3000
+sample "Radius 12" --seed 78 --edge wrap --radius 12 --steps 3000
+sample "Radius 12" --seed 54 --edge wrap --radius 12 --steps 3000
 sample "Radius 25" --seed 100 --edge wrap --radius 25 --steps 6000
 sample "Radius 25" --seed 30 --edge wrap --radius 25 --steps 6000
+sample "Radius 25" --seed 8 --edge wrap --radius 25 --steps 6000
 sample "Radius 50" --seed 68 --edge wrap
-sample "Radius 50" --seed 30 --edge wrap
-sample "Radius 50" --seed 46 --edge wrap
+sample "Radius 50" --seed 20 --edge wrap
+sample "Radius 50" --seed 15 --edge wrap
+sample "Radius 100" --seed 68 --edge wrap --radius 100 --steps 40000
 sample "Radius 100" --seed 8 --edge wrap --radius 100 --steps 40000
-sample "Radius 100" --seed 20 --edge wrap --radius 100 --steps 40000
 sample "Radius 100" --seed 30 --edge wrap --radius 100 --steps 40000
 
 theme colors "Colors" \
   "From 1 to 8 palette colors (<code>--colors</code>), all wrapping. More colors make a bigger rule table, (colors + 1)<sup>3</sup> entries, and busier pictures."
-sample "1 color: only the path" --seed 8 --edge wrap --colors 1
+sample "1 color: only the path" --seed 3 --edge wrap --colors 1
 sample "1 color: only the path" --seed 30 --edge wrap --colors 1
-sample "2 colors" --seed 1 --edge wrap --colors 2
-sample "2 colors" --seed 5 --edge wrap --colors 2
+sample "2 colors" --seed 61 --edge wrap --colors 2
 sample "2 colors" --seed 74 --edge wrap --colors 2
-sample "3 colors" --seed 10 --edge wrap --colors 3
+sample "2 colors" --seed 27 --edge wrap --colors 2
+sample "3 colors" --seed 84 --edge wrap --colors 3
 sample "3 colors" --seed 59 --edge wrap --colors 3
 sample "3 colors" --seed 87 --edge wrap --colors 3
 sample "4 colors (default)" --seed 20 --edge wrap
 sample "4 colors (default)" --seed 30 --edge wrap
-sample "6 colors" --seed 45 --edge wrap --colors 6
 sample "6 colors" --seed 64 --edge wrap --colors 6
+sample "6 colors" --seed 20 --edge wrap --colors 6
 sample "6 colors" --seed 76 --edge wrap --colors 6
-sample "8 colors" --seed 68 --edge wrap --colors 8
-sample "8 colors" --seed 81 --edge wrap --colors 8
 sample "8 colors" --seed 9 --edge wrap --colors 8
+sample "8 colors" --seed 34 --edge wrap --colors 8
+sample "8 colors" --seed 41 --edge wrap --colors 8
 
 theme history "History" \
-  "How many recent tiles, the current one included, the turtle looks at (<code>--history</code>), all wrapping. With 1 it only sees the tile it stands on; longer histories give bigger rule tables and more varied walks."
+  "How many recent tiles, the current one included, the turtle looks at (<code>--history</code>), all wrapping. With 1 it only sees the tile it stands on; longer histories (up to 6) give bigger rule tables and more varied walks."
 sample "History 1" --seed 2 --edge wrap --history 1
 sample "History 1" --seed 7 --edge wrap --history 1
 sample "History 1" --seed 24 --edge wrap --history 1
 sample "History 2" --seed 2 --edge wrap --history 2
-sample "History 2" --seed 23 --edge wrap --history 2
+sample "History 2" --seed 5 --edge wrap --history 2
 sample "History 2" --seed 47 --edge wrap --history 2
 sample "History 3 (default)" --seed 8 --edge wrap
 sample "History 3 (default)" --seed 30 --edge wrap
-sample "History 4" --seed 71 --edge wrap --history 4
-sample "History 4" --seed 52 --edge wrap --history 4
 sample "History 4" --seed 19 --edge wrap --history 4
-sample "History 5" --seed 52 --edge wrap --history 5
-sample "History 5" --seed 42 --edge wrap --history 5
-sample "History 5" --seed 91 --edge wrap --history 5
+sample "History 4" --seed 49 --edge wrap --history 4
+sample "History 4" --seed 66 --edge wrap --history 4
+sample "History 5" --seed 17 --edge wrap --history 5
+sample "History 5" --seed 59 --edge wrap --history 5
+sample "History 5" --seed 82 --edge wrap --history 5
+sample "History 6" --seed 77 --edge wrap --history 6
+sample "History 6" --seed 66 --edge wrap --history 6
+sample "History 6" --seed 49 --edge wrap --history 6
 
 theme endings "Common endings" \
   "Most seeds are not this lucky. These are the usual outcomes, on small grids so they are visible."

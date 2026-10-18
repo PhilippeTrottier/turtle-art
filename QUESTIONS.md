@@ -131,3 +131,22 @@ README or the code, and the entry is deleted.
     of a CheckedTransformer; it also accepts 0 and 1. Fine, or tidy it up?
 26. **Change:** SVGs now define the hexagon once and place tiles with
     `<use>` and CSS classes; radius-50 files went from 1.24 MB to 411 KB.
+
+## Gallery
+
+27. **Assumption:** gallery seeds were chosen by a survey of seeds 1-100 per
+    setting, ranked by color entropy (how evenly tiles spread over the
+    colors, unpainted included), after a first ranking by area picked too
+    many flat one-color fills. The survey scripts are throwaway (not in the
+    repo); say if you want a `scripts/survey` tool committed.
+28. **Assumption:** the gallery regenerates from scratch each run (it deletes
+    `gallery/`, which only holds generated files) and uses the first build
+    it finds under `build/`. 72 pictures, about 30 MB, about 10 s with a
+    Release build.
+29. **Question:** no Release preset exists; I made a throwaway
+    `build/release-scratch` for speed. Add `msvc-release` / `gcc-release`
+    presets?
+30. **Finding:** more colors rarely means more colorful. With 6-8 colors
+    most seeds still paint a field of one or two colors, and in seeds 1-100
+    only seed 9 (8 colors) spreads tiles evenly. Longer histories (5-6)
+    gave the most balanced pictures of any setting.
