@@ -71,20 +71,28 @@ README or the code, and the entry is deleted.
 15. **Question — most seeds make tiny pictures.** Across seeds 1–300 at the
     defaults (radius 50, 10,000 steps), the number of tiles painted was:
     under 50 for 113 seeds, 50–499 for 183, 500–1999 for 3, and 2000+ for
-    1 (seed 228: 2,563 tiles, all 4 colors). The turtle almost always falls
-    into a short loop. That follows from the rule as specified: the two
-    previous tiles always hold the turtle's own recent colors, so only
-    the current tile feeds the grid back into the walk, and a loop that
-    repaints with the same color never changes. Ideas for v2, none built:
+    1 (seed 228: 2,563 tiles, all 4 colors). Checking where each run
+    ended (after I could view the pictures) shows two causes:
+    - **167 seeds hit the edge** and stop, most after walking almost
+      straight out (~50 steps). This comes from choosing "stop at edge";
+      a wrapping grid (torus) or bouncing off the edge would keep them
+      going.
+    - **133 seeds loop** forever on a few tiles. This comes from the rule
+      itself: the two previous tiles always hold the turtle's own recent
+      colors, so only the current tile feeds the grid back into the walk,
+      and a loop that repaints with the same color never changes.
+
+    Ideas for v2, none built:
+    - wrap or bounce at the edge instead of stopping;
     - paint the tile with the *next* color after its current one
       (Langton's-ant style), so revisits always change the grid;
     - sense more of the grid (e.g. the tile ahead) instead of history;
     - weight actions (fewer turns, more keep);
-    - search seeds automatically, or report steps/tiles covered.
+    - report steps taken and tiles covered, or search seeds automatically.
 16. **Assumption:** because of 15, the default seed is 228 instead of 1, so
-    running with no options gives an interesting picture. I could not view
-    the SVG (the built-in browser cannot open local files); please open
-    `turtle-art.svg` and check that it looks right.
+    running with no options gives an interesting picture. Seen in the
+    gallery: it looks right, and covers roughly the middle third of the
+    grid in all four colors before reaching the edge.
 17. **Assumption:** defaults are `--steps 10000 --radius 50 --out
     turtle-art.svg`. A radius-50 SVG is about 1.2 MB, since every tile is
     drawn.
