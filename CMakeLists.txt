@@ -20,6 +20,23 @@ target_compile_options(turtle_art_options INTERFACE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>)
 
+# Run clang-tidy (configured in .clang-tidy) on every file as it compiles.
+# Visual Studio ships clang-tidy next to MSVC, so also look there: the
+# compiler lives in VC/Tools/MSVC/<version>/bin/Hostx64/x64.
+option(TURTLE_ART_CLANG_TIDY "Run clang-tidy during the build" ON)
+if(TURTLE_ART_CLANG_TIDY)
+  cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH compiler_dir)
+  find_program(CLANG_TIDY_EXE clang-tidy
+    HINTS "${compiler_dir}/../../../../../Llvm/x64/bin")
+  if(CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy: ${CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  else()
+    message(WARNING "clang-tidy not found; building without it. "
+                    "Install it or configure with -DTURTLE_ART_CLANG_TIDY=OFF.")
+  endif()
+endif()
+
 add_subdirectory(src)
 
 enable_testing()
