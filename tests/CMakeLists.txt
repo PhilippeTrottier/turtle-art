@@ -3,6 +3,7 @@
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(turtle_art_tests
+  color_test.cc
   direction_test.cc
   grid_test.cc
   hex_test.cc)

@@ -14,6 +14,16 @@ enum class Color {
   kPaint4,
 };
 
+// The number of Color values, unpainted included.
+//
+// `inline` on a variable (C++17) lets a header define it: every file that
+// includes the header shares one variable instead of each getting a copy.
+inline constexpr int kColorCount = 5;
+
+// Returns the palette color after `color`: kPaint1 -> kPaint2 -> kPaint3 ->
+// kPaint4 -> kPaint1. kUnpainted is not a palette color; it returns kPaint1.
+Color NextPaint(Color color);
+
 }  // namespace turtle_art
 
 #endif  // TURTLE_ART_SRC_COLOR_H_
