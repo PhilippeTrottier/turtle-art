@@ -8,6 +8,10 @@
 #                                        which are standard in hex math.
 #   readability-magic-numbers            flags every literal in tests.
 #   bugprone-easily-swappable-parameters flags any two same-typed parameters.
+#   performance-enum-size                asks for 1-byte enums; v1 does not
+#                                        optimise for size or speed.
+#   modernize-use-nodiscard              asks for [[nodiscard]] on every const
+#                                        getter, which buries the code.
 Checks: >
   -*,
   google-*,
@@ -18,13 +22,16 @@ Checks: >
   -modernize-use-trailing-return-type,
   -readability-identifier-length,
   -readability-magic-numbers,
-  -bugprone-easily-swappable-parameters
+  -bugprone-easily-swappable-parameters,
+  -performance-enum-size,
+  -modernize-use-nodiscard
 
 # Any finding fails the build, so warnings cannot pile up.
 WarningsAsErrors: "*"
 
-# Only report findings in our own headers, not in GoogleTest's.
-HeaderFilterRegex: "/(src|tests)/"
+# Only report findings in our own headers, not in GoogleTest's. `[/\\]`
+# matches either path separator, so the filter also works on Windows.
+HeaderFilterRegex: '[/\\](src|tests)[/\\]'
 
 # Names as the Google C++ Style Guide spells them.
 CheckOptions:
@@ -35,6 +42,10 @@ CheckOptions:
   readability-identifier-naming.EnumConstantCase: CamelCase
   readability-identifier-naming.EnumConstantPrefix: k
   readability-identifier-naming.FunctionCase: CamelCase
+  # Methods are CamelCase too, except accessors, which Google allows to be
+  # named like the member they return, e.g. radius() for radius_.
+  readability-identifier-naming.MethodCase: CamelCase
+  readability-identifier-naming.MethodIgnoredRegexp: "^[a-z][a-z0-9_]*$"
   readability-identifier-naming.VariableCase: lower_case
   readability-identifier-naming.ParameterCase: lower_case
   readability-identifier-naming.PrivateMemberCase: lower_case
