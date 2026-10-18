@@ -16,3 +16,8 @@ target_compile_options(turtle_art_options INTERFACE
   # $<...> is a generator expression: evaluated per compiler at build time.
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>)
+
+add_subdirectory(src)
+
+enable_testing()
+add_subdirectory(tests)
