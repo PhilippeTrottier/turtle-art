@@ -3,7 +3,8 @@ add_library(turtle_art_lib
   color.cc
   direction.cc
   grid.cc
-  hex.cc)
+  hex.cc
+  rule_table.cc)
 
 # PUBLIC: targets linking turtle_art_lib also get this include path, so they
 # can write #include "direction.h".
