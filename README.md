@@ -2,9 +2,9 @@
 
 Procedural art made by a turtle walking on a hexagonal grid.
 
-> **Status:** build skeleton. The project builds and runs its unit tests; the
-> turtle itself is not written yet. This file records every decision made so
-> far; the code follows it.
+> **Status:** v1 works end to end on Windows/MSVC. Open questions and
+> assumptions from building it are in [QUESTIONS.md](QUESTIONS.md); the
+> Linux/macOS presets have not been run yet.
 
 ## What it does
 
@@ -64,14 +64,15 @@ tile is how the grid feeds back into the walk, as in
 
 ### Command-line options
 
-| Option     | Meaning                                  |
-|------------|------------------------------------------|
-| `--seed`   | Seed for the rule table                  |
-| `--steps`  | Maximum number of steps                  |
-| `--radius` | Grid radius in tiles                     |
-| `--out`    | Path of the SVG file to write            |
+| Option     | Meaning                                  | Default          |
+|------------|------------------------------------------|------------------|
+| `--seed`   | Seed for the rule table                  | `228`            |
+| `--steps`  | Maximum number of steps                  | `10000`          |
+| `--radius` | Grid radius in tiles                     | `50`             |
+| `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
-Defaults will be picked so that running with no options makes a picture.
+`--help` lists them too. The default seed is one whose turtle covers a large
+area; most seeds loop on a few dozen tiles (see QUESTIONS.md).
 
 ## Building and testing
 
@@ -102,7 +103,8 @@ cmake --build --preset msvc
 ctest --preset msvc
 ```
 
-Build output goes to `build/<preset>/`, which git ignores.
+Build output goes to `build/<preset>/`, which git ignores. The program is
+`build/<preset>/src/turtle-art` (`.exe` on Windows).
 
 ### Formatting and linting
 
@@ -126,11 +128,31 @@ Build output goes to `build/<preset>/`, which git ignores.
 
 | Path                 | Contents                                         |
 |----------------------|--------------------------------------------------|
-| `src/`               | The program's logic, built as `turtle_art_lib`   |
+| `src/`               | The program's logic, built as `turtle_art_lib`, plus `main.cc` for the `turtle-art` program |
 | `tests/`             | GoogleTest unit tests, one `*_test.cc` per file  |
 | `CMakeLists.txt`     | Top-level build, shared compiler settings        |
 | `CMakePresets.json`  | Configure/build/test presets per compiler        |
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
+| `QUESTIONS.md`       | Open questions and assumptions awaiting review   |
+
+### Code map
+
+Read `src/` in this order; each file uses only the ones above it. Every
+`foo.cc` has its tests in `tests/foo_test.cc`.
+
+| File              | What it holds                                              |
+|-------------------|------------------------------------------------------------|
+| `direction.h`     | `Direction`: the 6 hex directions, `TurnLeft`, `TurnRight` |
+| `hex.h`           | `Hex`: axial tile coordinates, `Neighbor`, `DistanceFromCenter` |
+| `color.h`         | `Color`: unpainted plus 4 paints, `NextPaint`              |
+| `grid.h`          | `Grid`: hexagon of tiles of radius R, `Contains`, `ColorAt`, `Paint` |
+| `action.h`        | `Action`: keep, turn left, turn right, change color        |
+| `rule_table.h`    | `SensedColors` and `RuleTable`: 3 colors → action          |
+| `random_rules.h`  | `RandomRuleTable(seed)`: same table on every platform      |
+| `turtle.h`        | `Turtle::Step` (sense, act, paint, move) and `Walk`        |
+| `svg.h`           | `ToSvg`: a grid as an SVG string                           |
+| `art.h`           | `ArtSettings` and `MakeArt`: rules + walk + SVG            |
+| `main.cc`         | Command-line options, writes the SVG file                  |
 
 ## Why this repository exists
 
