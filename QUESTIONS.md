@@ -26,3 +26,16 @@ README or the code, and the entry is deleted.
      `radius()`). Side effect: any lower_case method passes the naming check.
 3. **Note:** editing `.clang-tidy` does not trigger a rebuild. Use
    `cmake --build --preset msvc --clean-first` after changing it.
+
+## Rules
+
+4. **Assumption:** the sensed colors are ordered oldest first
+   (`two_back`, `one_back`, `current`), and the seeded table fills
+   combinations in that order. Changing the order changes every picture
+   for a given seed.
+5. **Assumption:** each action is equally likely (1 in 4) in a random
+   table. Weighting (e.g. fewer color changes) is a possible v2 knob.
+6. **Assumption:** random numbers come from `std::mt19937` with our own
+   `% 4` mapping, not `std::uniform_int_distribution`, because only the
+   former is guaranteed identical across standard libraries. A test pins
+   seed 1's first entry so a platform difference would show up.
