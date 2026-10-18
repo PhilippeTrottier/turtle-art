@@ -1,0 +1,43 @@
+# Static analysis, run automatically during the build (see README).
+#
+# Enabled groups: Google style rules, modern C++ idioms, likely bugs,
+# readability and performance. The disabled checks below are too noisy for a
+# small teaching codebase:
+#   modernize-use-trailing-return-type   `auto f() -> int` everywhere.
+#   readability-identifier-length        flags short names like `q` and `r`,
+#                                        which are standard in hex math.
+#   readability-magic-numbers            flags every literal in tests.
+#   bugprone-easily-swappable-parameters flags any two same-typed parameters.
+Checks: >
+  -*,
+  google-*,
+  modernize-*,
+  bugprone-*,
+  readability-*,
+  performance-*,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -bugprone-easily-swappable-parameters
+
+# Any finding fails the build, so warnings cannot pile up.
+WarningsAsErrors: "*"
+
+# Only report findings in our own headers, not in GoogleTest's.
+HeaderFilterRegex: "/(src|tests)/"
+
+# Names as the Google C++ Style Guide spells them.
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.EnumConstantPrefix: k
+  readability-identifier-naming.FunctionCase: CamelCase
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.ConstexprVariableCase: CamelCase
+  readability-identifier-naming.ConstexprVariablePrefix: k
