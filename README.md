@@ -79,12 +79,16 @@ You need:
 
 - CMake 3.25 or newer.
 - A C++20 compiler: MSVC (Visual Studio 2022 with *Desktop development with
-  C++*) on Windows, GCC or Clang plus Ninja on Linux/macOS.
+  C++*) on Windows, GCC or Clang on Linux/macOS.
+- [Ninja](https://ninja-build.org/), used by every preset.
 - [vcpkg](https://learn.microsoft.com/vcpkg/get_started/get-started), with the
   `VCPKG_ROOT` environment variable pointing to it. CMake installs the
   packages listed in `vcpkg.json` on the first configure.
 
-Pick the preset for your platform (`msvc`, `gcc` or `clang`) and run:
+Pick the preset for your platform (`msvc`, `gcc` or `clang`) and run the
+commands below. On Windows, run them from a **Developer PowerShell for VS
+2022** (Start menu), which puts `cl.exe` on the `PATH`; Ninja, unlike the
+Visual Studio generator, does not look for the compiler itself.
 
 ```bash
 cmake --preset msvc

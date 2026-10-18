@@ -5,37 +5,36 @@
     {
       "name": "base",
       "hidden": true,
-      "description": "Common settings: build folder per preset, vcpkg toolchain from VCPKG_ROOT.",
+      "description": "Common settings: Ninja, Debug, build folder per preset, vcpkg toolchain from VCPKG_ROOT.",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
     },
     {
       "name": "msvc",
       "inherits": "base",
-      "displayName": "Windows, MSVC",
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
+      "displayName": "Windows, MSVC (run from a Developer PowerShell for VS 2022)",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "cl" },
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
     {
       "name": "gcc",
       "inherits": "base",
       "displayName": "Linux/macOS, GCC",
-      "generator": "Ninja",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "CMAKE_CXX_COMPILER": "g++" },
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" },
       "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
     {
       "name": "clang",
       "inherits": "base",
       "displayName": "Linux/macOS, Clang",
-      "generator": "Ninja",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "CMAKE_CXX_COMPILER": "clang++" },
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" },
       "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     }
   ],
   "buildPresets": [
-    { "name": "msvc", "configurePreset": "msvc", "configuration": "Debug" },
+    { "name": "msvc", "configurePreset": "msvc" },
     { "name": "gcc", "configurePreset": "gcc" },
     { "name": "clang", "configurePreset": "clang" }
   ],
@@ -45,7 +44,7 @@
       "hidden": true,
       "output": { "outputOnFailure": true }
     },
-    { "name": "msvc", "inherits": "base", "configurePreset": "msvc", "configuration": "Debug" },
+    { "name": "msvc", "inherits": "base", "configurePreset": "msvc" },
     { "name": "gcc", "inherits": "base", "configurePreset": "gcc" },
     { "name": "clang", "inherits": "base", "configurePreset": "clang" }
   ]
