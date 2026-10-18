@@ -1,6 +1,7 @@
 #ifndef TURTLE_ART_SRC_HEX_H_
 #define TURTLE_ART_SRC_HEX_H_
 
+#include <compare>  // Needed by operator<=>.
 #include <ostream>
 
 #include "direction.h"
@@ -17,9 +18,10 @@ struct Hex {
   int q = 0;
   int r = 0;
 
-  // `= default` (C++20) makes the compiler write operator== by comparing
-  // members in order. It also gives operator!= for free.
-  friend bool operator==(const Hex&, const Hex&) = default;
+  // The "spaceship" operator <=> (C++20), defaulted, makes the compiler
+  // compare members in order (q, then r) and derive ==, !=, <, <=, > and >=.
+  // Ordering lets Hex be a key of std::map.
+  friend auto operator<=>(const Hex&, const Hex&) = default;
 };
 
 // Returns the tile next to `hex` in `direction`.
