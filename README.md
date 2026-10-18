@@ -20,10 +20,11 @@ turtle-art --seed 42 --steps 10000 --radius 50 --out art.svg
 The turtle has a **position** (a tile), a **heading** (one of the 6 neighbour
 directions) and a **current color**. Each step:
 
-1. **Sense** — read the grid colors of the last 3 tiles visited: the tile it
-   stands on and the two before it. Tiles never painted have the color
-   *unpainted*. At the start, missing history counts as *unpainted*.
-2. **Decide** — look up those 3 colors in the rule table, which gives exactly
+1. **Sense** — read the grid colors of the last H tiles visited (`--history`,
+   default 3): the tile it stands on and the H − 1 before it. Tiles never
+   painted have the color *unpainted*. At the start, missing history counts
+   as *unpainted*.
+2. **Decide** — look up those H colors in the rule table, which gives exactly
    one action:
    - **keep** the heading,
    - **turn left** 60°,
@@ -32,32 +33,38 @@ directions) and a **current color**. Each step:
 3. **Paint** the current tile with the current color.
 4. **Move** one tile forward along the heading.
 
-The run ends after `--steps` steps, or earlier if the next move would leave
-the grid.
+The run ends after `--steps` steps. With `--edge stop` (the default) it ends
+earlier if the next move would leave the grid; with `--edge wrap` the move
+comes back in on the opposite side of the hexagon instead.
 
 Note: a turtle that only turns by 60° cannot come back to a tile in fewer than
-6 moves, so the two previous tiles always still hold the colors the turtle
-just painted. Only the tile it stands on can hold an older color. That one
+6 moves, so with the default history the two previous tiles always still
+hold the colors the turtle just painted. Only the tile it stands on can hold an older color. That one
 tile is how the grid feeds back into the walk, as in
 [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
 
 ### Colors
 
-- A fixed palette of **4 colors**, plus *unpainted* (the background).
+- A palette of **N colors** (`--colors`, 1 to 8, default 4), plus
+  *unpainted* (the background).
 - The turtle starts with the first palette color; it never paints *unpainted*.
-- *Change color* moves to the next palette color, cycling 1 → 2 → 3 → 4 → 1.
+- *Change color* moves to the next palette color, cycling 1 → 2 → … → N → 1.
 
 ### The rule table
 
-- The table maps every combination of 3 sensed colors to one action:
-  5 × 5 × 5 = **125 entries**.
+- The table maps every combination of H sensed colors to one action:
+  (N + 1)^H entries, **125** with the defaults (5 × 5 × 5).
 - It is generated from `--seed` with a seeded random number generator, so the
   same seed always produces the same table, and the same picture.
 
 ### The grid
 
 - A **hexagon of radius R** (`--radius`): every tile within R steps of the
-  center. The turtle starts at the center.
+  center. The turtle starts at the center, heading east.
+- Its edge either stops the walk or wraps around (`--edge`). Wrapping uses
+  the hexagon's "mirror centers", so leaving through one side re-enters
+  through the opposite one
+  ([reference](https://www.redblobgames.com/grids/hexagons/#wraparound)).
 - Tiles are addressed with **axial hex coordinates**
   ([reference](https://www.redblobgames.com/grids/hexagons/)), which keep
   neighbour and distance math simple.
@@ -69,6 +76,9 @@ tile is how the grid feeds back into the walk, as in
 | `--seed`   | Seed for the rule table                  | `228`            |
 | `--steps`  | Maximum number of steps                  | `10000`          |
 | `--radius` | Grid radius in tiles                     | `50`             |
+| `--edge`   | At the edge: `stop` the walk, or `wrap` around to the opposite side | `stop` |
+| `--colors` | Number of palette colors, 1 to 8         | `4`              |
+| `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `3` |
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
 `--help` lists them too. The default seed is one whose turtle covers a large

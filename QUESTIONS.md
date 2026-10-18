@@ -105,3 +105,29 @@ README or the code, and the entry is deleted.
     `bugprone-exception-escape` with a commented `NOLINT`.
 19. **Note:** clang-tidy ignores MSVC's `/EHsc`, so CMake passes it again
     (`--extra-arg=/EHsc`); without that, CLI11's try/catch fails the lint.
+
+## Knobs added after v1 (edge, colors, history)
+
+20. **Assumption:** `--edge wrap` uses the standard hexagon wraparound
+    (mirror centers), so leaving one side re-enters the *opposite* side,
+    shifted: e.g. on radius 1, east of {1, 0} is {-1, 1}, not {-1, 0}. It
+    is the only wrap where every tile keeps exactly 6 neighbors. The default
+    stays `stop`, your original choice, though `wrap` makes far more seeds
+    interesting. Switch the default?
+21. **Finding:** with wrap, a turtle that never turns covers *every* tile
+    (a straight line on this torus visits the whole hexagon), so many seeds
+    "fill" the grid in one color. The gallery survey therefore ranks seeds
+    by colors used as well as area.
+22. **Assumption:** `--colors` is 1-8 and `--history` 1-6. The rule table
+    has (colors + 1)^history entries, at most 9^6 = 531,441. Limits are
+    `kMaxPaintCount` and `kMaxHistoryLength`.
+23. **Assumption:** the 4 extra palette colors are sage `#8ab17d`, purple
+    `#9b5de5`, sky blue `#00b4d8` and yellow `#ffd166`.
+24. **Assumption:** the random table is filled in index order (sensed colors
+    as base-(colors+1) digits, oldest first), so default settings still give
+    exactly the same pictures as v1 (checked on seed 228).
+25. **Cosmetic:** `--help` shows `--edge` as
+    `ENUM:value in {stop->0,wrap->1} OR {0,1}`, CLI11's default rendering
+    of a CheckedTransformer; it also accepts 0 and 1. Fine, or tidy it up?
+26. **Change:** SVGs now define the hexagon once and place tiles with
+    `<use>` and CSS classes; radius-50 files went from 1.24 MB to 411 KB.
