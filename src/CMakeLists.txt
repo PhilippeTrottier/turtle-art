@@ -1,5 +1,6 @@
 # The program's logic, as a library so the tests can link to it.
 add_library(turtle_art_lib
+  art.cc
   color.cc
   direction.cc
   grid.cc
