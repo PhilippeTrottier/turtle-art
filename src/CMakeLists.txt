@@ -14,3 +14,8 @@ add_library(turtle_art_lib
 # can write #include "direction.h".
 target_include_directories(turtle_art_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(turtle_art_lib PUBLIC turtle_art_options)
+
+# The command-line program: a thin layer over turtle_art_lib.
+find_package(CLI11 CONFIG REQUIRED)
+add_executable(turtle-art main.cc)
+target_link_libraries(turtle-art PRIVATE turtle_art_lib CLI11::CLI11)
