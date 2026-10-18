@@ -9,6 +9,7 @@ add_executable(turtle_art_tests
   hex_test.cc
   random_rules_test.cc
   rule_table_test.cc
+  svg_test.cc
   turtle_test.cc)
 
 # GTest::gtest_main provides main(), which runs every TEST in the executable.

@@ -51,3 +51,17 @@ README or the code, and the entry is deleted.
    counts as a step; the run then ends. `Walk` returns steps taken.
 10. **Assumption:** `Grid` and `RuleTable` are passed to `Turtle::Step`
     instead of stored in the turtle, so tests can set them up freely.
+
+## SVG output
+
+11. **Assumption — palette:** unpainted `#f5f0e6` (off-white), then red
+    `#e63946`, orange `#f4a261`, teal `#2a9d8f`, dark blue `#264653`. Pick
+    your own, or make the palette an option later?
+12. **Assumption:** unpainted tiles are drawn too (as the background), so
+    the picture always shows the full hexagonal grid. The alternative is
+    drawing painted tiles only, on a transparent background.
+13. **Assumption:** tiles are 10 SVG units from center to corner, with
+    coordinates printed to 2 decimals. Corner offsets are written out
+    instead of computed with sin/cos, so output is identical everywhere.
+14. **Question:** `std::format` needs GCC 13+, Clang 17+ (libc++) or MSVC
+    19.29+. OK as the minimum compilers? Only MSVC is verified so far.
