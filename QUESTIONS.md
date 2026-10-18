@@ -39,3 +39,15 @@ README or the code, and the entry is deleted.
    `% 4` mapping, not `std::uniform_int_distribution`, because only the
    former is guaranteed identical across standard libraries. A test pins
    seed 1's first entry so a platform difference would show up.
+
+## The walk
+
+7. **Assumption:** the turtle starts on the center tile, heading east,
+   with `kPaint1`. A random or seeded start heading would be easy to add.
+8. **Assumption:** a *change color* step changes color first, then paints,
+   so the tile it stands on gets the new color (README order: sense,
+   decide, paint, move).
+9. **Assumption:** at the edge, the final step still paints its tile and
+   counts as a step; the run then ends. `Walk` returns steps taken.
+10. **Assumption:** `Grid` and `RuleTable` are passed to `Turtle::Step`
+    instead of stored in the turtle, so tests can set them up freely.

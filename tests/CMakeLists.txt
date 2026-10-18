@@ -8,7 +8,8 @@ add_executable(turtle_art_tests
   grid_test.cc
   hex_test.cc
   random_rules_test.cc
-  rule_table_test.cc)
+  rule_table_test.cc
+  turtle_test.cc)
 
 # GTest::gtest_main provides main(), which runs every TEST in the executable.
 target_link_libraries(turtle_art_tests PRIVATE turtle_art_lib GTest::gtest_main)
