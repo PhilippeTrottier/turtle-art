@@ -44,13 +44,13 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
 
   grid.Paint(position_, color_);
 
-  const Hex next = Neighbor(position_, heading_);
-  if (!grid.Contains(next)) {
+  const std::optional<Hex> next = grid.NeighborOf(position_, heading_);
+  if (!next) {
     return false;
   }
   two_back_ = one_back_;
   one_back_ = position_;
-  position_ = next;
+  position_ = *next;
   return true;
 }
 

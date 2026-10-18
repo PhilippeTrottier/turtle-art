@@ -32,8 +32,9 @@ class Turtle {
 
   // Takes one step: senses the colors of the last 3 tiles, applies the
   // action `rules` gives for them, paints the current tile, and moves one
-  // tile forward. If that move would leave `grid`, the turtle stays put and
-  // Step returns false; otherwise it returns true.
+  // tile forward, wrapping around if `grid` wraps. If the move would leave a
+  // grid that does not wrap, the turtle stays put and Step returns false;
+  // otherwise it returns true.
   //
   // The turtle must be on a tile of `grid`.
   bool Step(Grid& grid, const RuleTable& rules);

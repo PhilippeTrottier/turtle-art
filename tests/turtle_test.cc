@@ -121,5 +121,18 @@ TEST(TurtleTest, WalkStopsAtEdge) {
   EXPECT_EQ(turtle.position(), (Hex{.q = 1, .r = 0}));
 }
 
+TEST(TurtleTest, StepAtWrappingEdgeComesBackOnOppositeSide) {
+  Grid grid(0, EdgeMode::kWrap);
+  Turtle turtle;
+  EXPECT_TRUE(turtle.Step(grid, RuleTable()));
+  EXPECT_EQ(turtle.position(), Hex{});
+}
+
+TEST(TurtleTest, WalkOnWrappingGridTakesAllSteps) {
+  Grid grid(1, EdgeMode::kWrap);
+  Turtle turtle;
+  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10), 10);
+}
+
 }  // namespace
 }  // namespace turtle_art

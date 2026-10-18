@@ -2,7 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "color.h"
+#include "direction.h"
 #include "hex.h"
 
 namespace turtle_art {
@@ -50,6 +53,42 @@ TEST(GridTest, PaintingLeavesOtherTilesUnpainted) {
   Grid grid(2);
   grid.Paint(Hex{}, Color::kPaint1);
   EXPECT_EQ(grid.ColorAt(Hex{.q = 1, .r = 0}), Color::kUnpainted);
+}
+
+TEST(GridTest, NeighborInsideGrid) {
+  const Grid grid(2);
+  EXPECT_EQ(grid.NeighborOf(Hex{}, Direction::kEast), (Hex{.q = 1, .r = 0}));
+}
+
+TEST(GridTest, StopEdgeHasNoNeighborBeyond) {
+  const Grid grid(1, EdgeMode::kStop);
+  EXPECT_EQ(grid.NeighborOf(Hex{.q = 1, .r = 0}, Direction::kEast),
+            std::nullopt);
+}
+
+// On a wrapping hexagon, leaving through the east side comes back in on the
+// opposite (west) side, shifted by the hexagon's geometry.
+TEST(GridTest, WrapEdgeComesBackOnOppositeSide) {
+  const Grid grid(1, EdgeMode::kWrap);
+  EXPECT_EQ(grid.NeighborOf(Hex{.q = 1, .r = 0}, Direction::kEast),
+            (Hex{.q = -1, .r = 1}));
+}
+
+TEST(GridTest, WrapEdgeOnLargerGrid) {
+  const Grid grid(2, EdgeMode::kWrap);
+  EXPECT_EQ(grid.NeighborOf(Hex{.q = 2, .r = 0}, Direction::kEast),
+            (Hex{.q = -2, .r = 2}));
+}
+
+TEST(GridTest, WrapEdgeGoingBackReturnsToStart) {
+  const Grid grid(1, EdgeMode::kWrap);
+  EXPECT_EQ(grid.NeighborOf(Hex{.q = -1, .r = 1}, Direction::kWest),
+            (Hex{.q = 1, .r = 0}));
+}
+
+TEST(GridTest, WrapEdgeOnSingleTileReturnsToIt) {
+  const Grid grid(0, EdgeMode::kWrap);
+  EXPECT_EQ(grid.NeighborOf(Hex{}, Direction::kNorthWest), Hex{});
 }
 
 }  // namespace
