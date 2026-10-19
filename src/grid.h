@@ -47,6 +47,9 @@ class Grid {  // NOLINT(bugprone-exception-escape)
   //
   // Static functions returning an object ("named constructors") say which
   // kind of grid is made, which two constructors taking ints could not.
+  //
+  // Both default to EdgeMode::kStop, the simplest edge, which most tests
+  // use. The program's default is kWrap (ArtSettings in art.h).
   static Grid Hexagon(int radius, EdgeMode edge_mode = EdgeMode::kStop);
 
   // Returns a rectangle grid, `width` columns by `height` rows of square
@@ -79,8 +82,9 @@ class Grid {  // NOLINT(bugprone-exception-escape)
   bool Contains(Tile tile) const;
 
   // Returns every tile of this grid, row by row: r from low to high, and
-  // within a row q from low to high. Outputs (SVG, the web explorer) rely on
-  // this order.
+  // within a row q from low to high. Outputs (SVG, PNG, the web explorer)
+  // rely on this order; for a rectangle it is the top-left pixel first, row
+  // by row, as a PNG stores pixels.
   std::vector<Tile> Tiles() const;
 
   // Returns the tile one step from `tile` (a tile of this grid) in direction

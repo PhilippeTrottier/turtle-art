@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(turtle-art
   VERSION 0.1.0
-  DESCRIPTION "Procedural art made by a turtle walking on a hexagonal grid"
+  DESCRIPTION "Procedural art made by a turtle walking on a grid of hexagons or squares"
   LANGUAGES CXX)
 
 # Standard C++ only (e.g. -std=c++20, not -std=gnu++20). Set globally because

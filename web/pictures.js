@@ -8,7 +8,9 @@
 
 // Rows offered for golden rectangles and squares. Consecutive Fibonacci
 // numbers have a ratio close to the golden ratio (34 / 21 = 1.619), so a
-// golden rectangle is `rows` high and the next Fibonacci number wide.
+// golden rectangle is `rows` high and the next Fibonacci number wide. The
+// last number is only ever a width (of 610 rows), so the rows menu leaves it
+// out.
 export const FIBONACCI = [5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987];
 
 // Favorites saved before a knob existed lack it; they used its first value.

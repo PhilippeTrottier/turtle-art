@@ -6,8 +6,9 @@ namespace turtle_art {
 // What the turtle does in one step, before painting and moving on.
 enum class Action {
   kKeep,         // Keep the current heading.
-  kTurnLeft,     // Turn 60 degrees counter-clockwise.
-  kTurnRight,    // Turn 60 degrees clockwise.
+  kTurnLeft,     // Turn counter-clockwise: 60 degrees on hexagons, 90 on
+                 // squares.
+  kTurnRight,    // Turn clockwise, by the same angle.
   kChangeColor,  // Switch to the next palette color.
 };
 

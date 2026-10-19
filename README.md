@@ -27,6 +27,12 @@ square tiles. The painted grid is written out as an SVG image (or, for
 square tiles, a PNG with one pixel per tile), or browsed by the thousand in
 the [web explorer](#web-explorer).
 
+<img src="docs/hexagon.svg" alt="A hexagon of hexagonal tiles in four colors" height="240">
+<img src="docs/golden.svg" alt="A 34 by 21 golden rectangle of square tiles" height="240">
+
+Left: `turtle-art` with every default. Right: `turtle-art --seed 47
+--width 34 --height 21`. Both are in `docs/`.
+
 ```
 turtle-art --seed 42 --edge wrap --history 1 --radius 15 --steps 15000 --out art.svg
 turtle-art --seed 47 --width 34 --height 21 --out golden.svg
@@ -173,10 +179,11 @@ HTML/JavaScript front end (`web/`). It needs no server-side code; any static
 web server works.
 
 One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
-`EMSDK` at it (the script also looks in `~/emsdk` by itself). Emscripten is a
+`EMSDK` at it (the script also looks in `~/emsdk` by itself, and for vcpkg
+in `~/vcpkg` when `VCPKG_ROOT` is unset). Emscripten is a
 compiler toolchain, like MSVC or GCC, so vcpkg does not install it; vcpkg
 expects it to be installed already, and uses it to build the web build's
-packages (GoogleTest) through its `wasm32-emscripten` triplet. Use the
+packages (lodepng, GoogleTest) through its `wasm32-emscripten` triplet. Use the
 version the explorer is tested with, **6.0.12**, so everyone builds the same
 thing (configuring warns if another version is found):
 
@@ -223,7 +230,8 @@ Using it:
   so a view can be bookmarked or shared.
 - Thumbnails appear seed after seed as you scroll. Each shows its seed and
   interest score (the color `Entropy`); pictures below the filter are
-  skipped, which hides the many flat fills and tiny loops.
+  skipped, which hides the many flat fills and tiny loops. The score is not
+  normalized: see [Decisions](#decisions).
 - Click a picture (or press `Enter` for the first one) to view it large.
   In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `p`
   download a PNG with one pixel per tile (square tiles only), `c` copy its
@@ -289,6 +297,7 @@ Everything that decides what a picture looks like stays in C++.
 | `CMakePresets.json`  | Configure/build/test presets per compiler        |
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
 | `scripts/`           | `explorer.sh`: builds and serves the web explorer |
+| `docs/`              | Sample pictures shown in this README; regenerate them with the commands under it after a change to the pictures |
 | `.claude/launch.json`| Lets Claude Code's built-in browser start the explorer |
 | `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html`, `app.js` (the page), `worker.js` (generates pictures in the background), `pictures.js` (shared by both) |
 
@@ -460,7 +469,8 @@ decisions go here too; there is no separate list of open questions.
   (`ToAnimatedSvg`). It plays in any browser, also as a plain `<img>`, which
   is how the explorer's hex screensaver shows it. `--hz 0` (the default)
   gives the still picture, unchanged. The screensaver's 600 steps at 10 Hz
-  take exactly its one-minute period.
+  last at most its one-minute period; a walk that loops early (below)
+  finishes drawing sooner and then holds still.
 - **Early stop on loops:** most walks stop changing the picture long before
   their last step and end in a loop that only repaints tiles with the colors
   they have (at 160,000 steps on a radius-15 hexagon, 94% of seeds 1-200
@@ -468,7 +478,8 @@ decisions go here too; there is no separate list of open questions.
   cycle detection: one saved turtle state, moved forward after 1, 2, 4, 8,
   ... steps and reset by any color change; meeting it again means a loop
   that changes nothing. Pictures are byte-identical with or without it
-  (checked on the reference pictures and two 1,000,000-step seeds). A
+  (checked once, by hand, on seven saved hexagon pictures and two
+  1,000,000-step seeds; those files are not in the repository). A
   settling 233 x 144 walk went from 11.3 s to 0.6 s; walks that never loop
   cost the same as before. In the explorer, a 160,000-step picture went from
   about 31 ms to 5 ms on average. Animations end once the picture is final.
@@ -488,7 +499,11 @@ decisions go here too; there is no separate list of open questions.
   Windows' newline translation.
 - **Interest score:** color entropy (`grid_stats.h`). It hides flat fills and
   tiny loops well, but cannot tell structure from noise, so it helps less
-  with `--paint cycle`, where many seeds look like confetti.
+  with `--paint cycle`, where many seeds look like confetti. It is Shannon
+  entropy in bits over the tile colors, unpainted included, so it ranges
+  from 0 to log2(colors + 1): 2.32 with 4 colors, but only 1 with 1 color.
+  Thresholds (the default filter 0.6, the screensaver's 0.95) therefore mean
+  more at few colors than at many.
 - **C++ features left out on purpose:** templates, inheritance, smart
   pointers and exceptions. The Google guide discourages most of them and the
   program does not need them (KISS). Look elsewhere to practice them.
@@ -517,26 +532,35 @@ decisions go here too; there is no separate list of open questions.
 ## Invariants
 
 Things that must change together. Breaking the first two silently changes
-every picture for every seed.
+every picture for every seed. Unit tests catch only some of that:
+`RandomRulesTest.SeedOneStartsWithTurnLeft` pins one table entry, and no
+test pins a whole picture, so swapped `Action` values, a reversed index
+order or reordered directions can pass every test.
 
 1. **Rule table filling** (`random_rules.cc`): one `engine()` call per entry,
    in index order, where an index reads the sensed colors as digits in base
-   colors + 1, oldest first (`RuleTable::IndexOf`). Guarded by
-   `RandomRulesTest.SeedOneStartsWithTurnLeft`.
+   colors + 1, oldest first (`RuleTable::IndexOf`).
 2. **Enum and direction orders:** `Action` (its value is the random
    number), the direction offsets in `grid.cc` (counter-clockwise from east,
    so turning is ±1), `Color` (its value is the palette
    index, the SVG class `cN`, the PNG palette index and the byte the
    explorer receives).
 3. **Tile order:** `Grid::Tiles()` order is the order of the colors
-   `generate` and the centers `layout` return to `web/app.js`. All geometry
+   `generate` and the centers `layout` return to `web/app.js`, and of a
+   PNG's pixels (top-left first, row by row). All geometry
    lives in `layout.cc`; the page has none of its own.
 4. **Settings:** each `ArtSettings` field appears in `MakeGrid` or `RunArt`,
    `main.cc`, the options table above, `web/bindings.cc` (`value_object`) and
    `web/app.js` (`DEFAULTS`, `pictureOf`) and `web/pictures.js`
    (`toArtSettings`, `commandOf`).
    Adding a knob means touching all of them, plus tests in
-   `tests/art_test.cc`.
+   `tests/art_test.cc`, and two more places in the explorer, or it breaks
+   at runtime (Embind's `value_object` needs every field):
+   - `SCREENSAVER` in `web/app.js`, a full picture, needs the knob;
+   - favorites saved before the knob lack it, so read it through a fallback
+     like `paintOf` and `shapeOf` in `web/pictures.js`.
+   Changing a default means changing `ArtSettings`, `DEFAULTS` in
+   `web/app.js` and the options table together.
 
 ## Out of scope (for now)
 

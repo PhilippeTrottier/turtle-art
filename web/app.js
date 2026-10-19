@@ -391,9 +391,12 @@ $('viewer').addEventListener('click', (e) => {
 // The animation itself comes from C++ (an SVG that animates itself with
 // SMIL, see ToAnimatedSvg): the page only picks seeds and shows their SVGs.
 // A picture changes after steps / SCREENSAVER_HZ seconds (600 steps at 10
-// per second: one minute), just as it finishes drawing; the next one starts
-// from a clear grid.
-
+// per second: one minute). A walk that loops early (see Walk) finishes
+// drawing sooner and holds still until then; the next one starts from a
+// clear grid.
+//
+// A full picture: it needs every knob, including any added later, or
+// toArtSettings hands the C++ code an undefined field.
 const SCREENSAVER = {
   shape: 'hexagon', radius: 9, rows: 21, edge: 'wrap', paint: 'turtle',
   colors: 4, history: 2, steps: 600,

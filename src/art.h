@@ -30,7 +30,7 @@ struct ArtSettings {
   // kStop most turtles walk off the grid within a few dozen steps.
   EdgeMode edge_mode = EdgeMode::kWrap;
   // Number of palette colors, in [1, kMaxPaintCount].
-  int paint_count = kDefaultPaintCount;
+  int paint_count = 4;
   // Number of recent tiles, the current one included, whose colors decide
   // each action, in [1, kMaxHistoryLength]. 1 means only the tile the turtle
   // stands on, as in Langton's ant.
