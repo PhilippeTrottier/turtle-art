@@ -31,16 +31,18 @@ RuleTable::RuleTable(int paint_count, int history_length)
       Action::kKeep);
 }
 
+// IndexOf() checks `sensed`, so its result is always in range.
 Action RuleTable::ActionFor(const std::vector<Color>& sensed) const {
-  return actions_.at(IndexOf(sensed));
+  return actions_[IndexOf(sensed)];
 }
 
 void RuleTable::SetAction(const std::vector<Color>& sensed, Action action) {
-  actions_.at(IndexOf(sensed)) = action;
+  actions_[IndexOf(sensed)] = action;
 }
 
 void RuleTable::SetActionAt(std::size_t index, Action action) {
-  actions_.at(index) = action;
+  assert(index < actions_.size());
+  actions_[index] = action;
 }
 
 std::size_t RuleTable::IndexOf(const std::vector<Color>& sensed) const {

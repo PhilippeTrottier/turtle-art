@@ -25,9 +25,8 @@ constexpr std::array<Hex, 6> kNeighborOffsets = {{
 }  // namespace
 
 Hex Neighbor(Hex hex, Direction direction) {
-  // `.at()` checks the index, unlike `[]`: a bad Direction value would stop
-  // the program instead of reading past the end of the array.
-  const Hex offset = kNeighborOffsets.at(static_cast<std::size_t>(direction));
+  // Direction values are 0 to 5, so the index is always in range.
+  const Hex offset = kNeighborOffsets[static_cast<std::size_t>(direction)];
   // `.q = ...` are designated initializers (C++20): they name each member.
   return {.q = hex.q + offset.q, .r = hex.r + offset.r};
 }
