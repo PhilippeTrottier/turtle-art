@@ -3,6 +3,7 @@
 
 #include <map>
 #include <optional>
+#include <vector>
 
 #include "color.h"
 #include "direction.h"
@@ -35,6 +36,11 @@ class Grid {
 
   // Returns whether `hex` is a tile of this grid.
   bool Contains(Hex hex) const;
+
+  // Returns every tile of this grid, row by row: r from -radius to radius,
+  // and within a row q from low to high. Outputs (SVG, the web explorer)
+  // rely on this order.
+  std::vector<Hex> Tiles() const;
 
   // Returns the tile one step from `hex` in `direction`, which must be a tile
   // of this grid. If the step leaves the grid, returns the tile it wraps to

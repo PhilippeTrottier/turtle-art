@@ -4,6 +4,7 @@
 // is false. It compiles to nothing in Release builds (when NDEBUG is set).
 #include <cassert>
 #include <optional>
+#include <vector>
 
 #include "color.h"
 #include "direction.h"
@@ -20,6 +21,21 @@ Grid::Grid(int radius, EdgeMode edge_mode)
 
 bool Grid::Contains(Hex hex) const {
   return DistanceFromCenter(hex) <= radius_;
+}
+
+std::vector<Hex> Grid::Tiles() const {
+  std::vector<Hex> tiles;
+  // Visit every (q, r) in the square that encloses the hexagon, and keep
+  // those that are tiles of the grid.
+  for (int r = -radius_; r <= radius_; ++r) {
+    for (int q = -radius_; q <= radius_; ++q) {
+      const Hex hex = {.q = q, .r = r};
+      if (Contains(hex)) {
+        tiles.push_back(hex);
+      }
+    }
+  }
+  return tiles;
 }
 
 std::optional<Hex> Grid::NeighborOf(Hex hex, Direction direction) const {

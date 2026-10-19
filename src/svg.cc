@@ -117,15 +117,8 @@ std::string ToSvg(const Grid& grid) {
       2 * half_width, 2 * half_height, -half_width, -half_height,
       2 * half_width, 2 * half_height);
   svg += Header();
-  // Visit every (q, r) in the square that encloses the hexagon, and keep
-  // those that are tiles of the grid.
-  for (int r = -radius; r <= radius; ++r) {
-    for (int q = -radius; q <= radius; ++q) {
-      const Hex hex = {.q = q, .r = r};
-      if (grid.Contains(hex)) {
-        svg += Tile(hex, grid.ColorAt(hex));
-      }
-    }
+  for (const Hex hex : grid.Tiles()) {
+    svg += Tile(hex, grid.ColorAt(hex));
   }
   svg += "</svg>\n";
   return svg;

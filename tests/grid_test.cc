@@ -55,6 +55,21 @@ TEST(GridTest, PaintingLeavesOtherTilesUnpainted) {
   EXPECT_EQ(grid.ColorAt(Hex{.q = 1, .r = 0}), Color::kUnpainted);
 }
 
+TEST(GridTest, RadiusOneHasSevenTiles) {
+  const Grid grid(1);
+  EXPECT_EQ(grid.Tiles().size(), 7U);
+}
+
+TEST(GridTest, TilesStartWithTopRowFromLeft) {
+  const Grid grid(1);
+  EXPECT_EQ(grid.Tiles().front(), (Hex{.q = 0, .r = -1}));
+}
+
+TEST(GridTest, TilesEndWithBottomRowAtRight) {
+  const Grid grid(1);
+  EXPECT_EQ(grid.Tiles().back(), (Hex{.q = 0, .r = 1}));
+}
+
 TEST(GridTest, NeighborInsideGrid) {
   const Grid grid(2);
   EXPECT_EQ(grid.NeighborOf(Hex{}, Direction::kEast), (Hex{.q = 1, .r = 0}));
