@@ -2,6 +2,7 @@
 #define TURTLE_ART_SRC_TURTLE_H_
 
 #include <deque>
+#include <vector>
 
 #include "color.h"
 #include "grid.h"
@@ -64,10 +65,18 @@ class Turtle {
   std::deque<Tile> previous_;
 };
 
+// What one step painted: every step paints exactly one tile.
+struct PaintEvent {
+  Tile tile;
+  Color color = Color::kUnpainted;
+};
+
 // Makes `turtle` take up to `max_steps` steps on `grid`, stopping early if
-// it reaches the edge. Returns the number of steps taken, which includes the
-// final step at the edge (it still paints).
-int Walk(Turtle& turtle, Grid& grid, const RuleTable& rules, int max_steps);
+// it reaches the edge of a grid that does not wrap. Returns what each step
+// painted, in order, so its size is the number of steps taken (including
+// the final step at the edge, which still paints). Animations replay it.
+std::vector<PaintEvent> Walk(Turtle& turtle, Grid& grid, const RuleTable& rules,
+                             int max_steps);
 
 }  // namespace turtle_art
 

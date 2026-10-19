@@ -60,15 +60,19 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
   return true;
 }
 
-int Walk(Turtle& turtle, Grid& grid, const RuleTable& rules, int max_steps) {
-  int steps = 0;
-  while (steps < max_steps) {
-    ++steps;
-    if (!turtle.Step(grid, rules)) {
+std::vector<PaintEvent> Walk(Turtle& turtle, Grid& grid, const RuleTable& rules,
+                             int max_steps) {
+  std::vector<PaintEvent> painted;
+  while (static_cast<int>(painted.size()) < max_steps) {
+    // Step() paints the tile the turtle stands on, then moves off it.
+    const Tile tile = turtle.position();
+    const bool moved = turtle.Step(grid, rules);
+    painted.push_back({.tile = tile, .color = grid.ColorAt(tile)});
+    if (!moved) {
       break;
     }
   }
-  return steps;
+  return painted;
 }
 
 }  // namespace turtle_art

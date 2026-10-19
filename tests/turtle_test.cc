@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "action.h"
 #include "color.h"
 #include "grid.h"
@@ -118,14 +120,14 @@ TEST(TurtleTest, StepAtEdgePaintsButStaysPut) {
 TEST(TurtleTest, WalkTakesMaxSteps) {
   Grid grid = Grid::Hexagon(5);
   Turtle turtle;
-  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 3), 3);
+  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 3).size(), 3U);
   EXPECT_EQ(turtle.position(), (Tile{.q = 3, .r = 0}));
 }
 
 TEST(TurtleTest, WalkStopsAtEdge) {
   Grid grid = Grid::Hexagon(1);
   Turtle turtle;
-  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10), 2);
+  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10).size(), 2U);
   EXPECT_EQ(turtle.position(), (Tile{.q = 1, .r = 0}));
 }
 
@@ -139,7 +141,7 @@ TEST(TurtleTest, StepAtWrappingEdgeComesBackOnOppositeSide) {
 TEST(TurtleTest, WalkOnWrappingGridTakesAllSteps) {
   Grid grid = Grid::Hexagon(1, EdgeMode::kWrap);
   Turtle turtle;
-  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10), 10);
+  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10).size(), 10U);
 }
 
 TEST(TurtleTest, OneTileHistorySensesOnlyCurrentTile) {
@@ -228,6 +230,15 @@ TEST(TurtleTest, TurnRightOnSquareTilesHeadsSouth) {
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), 3);  // South on square tiles.
   EXPECT_EQ(turtle.position(), (Tile{.q = 0, .r = 1}));
+}
+
+TEST(TurtleTest, WalkReportsEachPaintInOrder) {
+  Grid grid = Grid::Hexagon(5);
+  Turtle turtle;
+  const std::vector<PaintEvent> painted = Walk(turtle, grid, RuleTable(), 2);
+  EXPECT_EQ(painted[0].tile, Tile{});
+  EXPECT_EQ(painted[0].color, Color::kPaint1);
+  EXPECT_EQ(painted[1].tile, (Tile{.q = 1, .r = 0}));
 }
 
 }  // namespace
