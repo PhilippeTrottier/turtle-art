@@ -223,8 +223,7 @@ Using it:
   golden rectangle is the next Fibonacci number wide, e.g. 21 rows by 34
   columns: consecutive Fibonacci numbers approach the golden ratio. Rows go
   from 5 up to 610 (610 x 987, about 600,000 tiles). Big grids need many
-  more steps (millions) before most pictures pass the interest filter, and
-  drawing them takes the page noticeably longer.
+  more steps (millions) before most pictures pass the interest filter.
 - The header holds the knobs, a start seed (🎲 or `r` for a random one), a
   **min interest** filter and the thumbnail size. Settings live in the URL,
   so a view can be bookmarked or shared.
@@ -257,7 +256,9 @@ interest score (`generate`). `app.js` runs on the page with the other copy,
 for what is quick or asked for: where tiles go (`layout`), SVGs for
 downloads and the screensaver (`svg`), and the screensaver's seed search.
 So a picture with many steps never freezes scrolling or clicks; the page
-only draws. `pictures.js`, shared by both, says what a picture is (a seed
+only draws. Hexagons are drawn as paths of tile outlines; square tiles are
+drawn as one pixel per tile, scaled by the canvas, because a path of
+600,000 squares (610 rows) froze the page. `pictures.js`, shared by both, says what a picture is (a seed
 plus the knobs) and turns it into C++ settings. `app.js`'s sections, in
 order: settings (mirrored in the URL), favorites, drawing, the grid of
 thumbnails, the large viewer, the hex screensaver, keys.

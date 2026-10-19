@@ -11,8 +11,8 @@
 // the grid of thumbnails, the large viewer, the hex screensaver, keys.
 
 import createTurtleArt from './turtle_art.js';
-import { FIBONACCI, commandOf, shapeOf, toArtSettings as artSettingsOf }
-  from './pictures.js';
+import { FIBONACCI, commandOf, shapeOf, sizeOf,
+         toArtSettings as artSettingsOf } from './pictures.js';
 
 const art = await createTurtleArt();
 const PALETTE = art.palette();
@@ -113,10 +113,59 @@ function layoutFor(p) {
   return layoutCache.get(key);
 }
 
-// Draws `colors` (one Color value per tile) onto `canvas`, `width` CSS
-// pixels wide. Tiles of one color go into one path, so each color is a
-// single fill call.
-function draw(canvas, layout, colors, width) {
+// The palette as [red, green, blue], parsed from its CSS colors "#rrggbb".
+const PALETTE_RGB = PALETTE.map((css) =>
+  [1, 3, 5].map((i) => parseInt(css.slice(i, i + 2), 16)));
+
+// Returns picture `p`'s width divided by its height.
+function aspectOf(p) {
+  if (shapeOf(p) === 'hexagon') {
+    const { bounds } = layoutFor(p);
+    return bounds.width / bounds.height;
+  }
+  const { width, height } = sizeOf(p);
+  return width / height;
+}
+
+// Draws picture `p`'s `colors` (one Color value per tile, in Grid::Tiles()
+// order) onto `canvas`, `width` CSS pixels wide.
+function draw(canvas, p, colors, width) {
+  if (shapeOf(p) === 'hexagon') {
+    drawHexagons(canvas, layoutFor(p), colors, width);
+  } else {
+    drawSquares(canvas, sizeOf(p), colors, width);
+  }
+}
+
+// Square tiles are pixels: write one pixel per tile (Tiles() runs row by row
+// from the top left, like an image), then let the canvas scale the image.
+// That stays fast at any size; filling a path of 600,000 squares (610 rows)
+// froze the page.
+function drawSquares(canvas, size, colors, width) {
+  const pixels = new ImageData(size.width, size.height);
+  const data = pixels.data;  // 4 bytes per pixel: red, green, blue, alpha.
+  for (let i = 0; i < colors.length; i++) {
+    const [red, green, blue] = PALETTE_RGB[colors[i]];
+    data[4 * i] = red;
+    data[4 * i + 1] = green;
+    data[4 * i + 2] = blue;
+    data[4 * i + 3] = 255;
+  }
+  const image = new OffscreenCanvas(size.width, size.height);
+  image.getContext('2d').putImageData(pixels, 0, 0);
+  canvas.width = Math.round(width * devicePixelRatio);
+  canvas.height = Math.round(canvas.width * size.height / size.width);
+  const ctx = canvas.getContext('2d');
+  // Enlarged tiles stay crisp squares; shrunk ones are averaged, which
+  // looks better than dropping most of them.
+  ctx.imageSmoothingEnabled = canvas.width < size.width;
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+}
+
+// Hexagons are drawn from the layout's tile outlines. Tiles of one color go
+// into one path, so each color is a single fill call. Hexagon grids are
+// small enough for this (radius 150 is 68,000 tiles).
+function drawHexagons(canvas, layout, colors, width) {
   const { centers, outline, bounds } = layout;
   const scale = (width * devicePixelRatio) / bounds.width;
   canvas.width = Math.round(bounds.width * scale);
@@ -158,7 +207,7 @@ function addItem(picture, result) {
   const card = document.createElement('div');
   card.className = 'card';
   const canvas = document.createElement('canvas');
-  draw(canvas, layoutFor(picture), result.colors, settings.thumb);
+  draw(canvas, picture, result.colors, settings.thumb);
   const index = items.length;
   canvas.addEventListener('click', () => openViewer(index));
   const meta = document.createElement('div');
@@ -312,10 +361,9 @@ function openViewer(index) {
 
 function showCurrent() {
   const item = items[current];
-  const layout = layoutFor(item.picture);
-  const aspect = layout.bounds.width / layout.bounds.height;
+  const aspect = aspectOf(item.picture);
   const width = Math.min(innerWidth - 24, (innerHeight - 110) * aspect);
-  draw($('big'), layout, item.colors, width);
+  draw($('big'), item.picture, item.colors, width);
   $('big').style.width = `${width}px`;
   $('info').textContent = `#${item.picture.seed} · interest ` +
     `${item.entropy.toFixed(2)} · ${current + 1}/${items.length}`;
