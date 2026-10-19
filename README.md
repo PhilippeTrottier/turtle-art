@@ -8,9 +8,11 @@ Procedural art made by a turtle walking on a grid of hexagons or squares.
 
 ## Start here
 
-- **To make pictures:** build it ([Building and testing](#building-and-testing)),
-  then run `turtle-art`, or browse thousands of seeds in the
-  [web explorer](#web-explorer).
+- **To make pictures:** try the web explorer online at
+  <https://turtle-art.netlify.app/> (deployed by hand, so not always the
+  latest commit until CI/CD is set up), or build it
+  ([Building and testing](#building-and-testing)), then run `turtle-art`,
+  or browse thousands of seeds in the [web explorer](#web-explorer).
 - **To maintain or extend it:** read [How we work](#how-we-work) and the
   [Non-functional requirements](#non-functional-requirements), then `src/`
   in [Code map](#code-map) order, each file with its tests. Before changing
@@ -175,8 +177,10 @@ Build output goes to `build/<preset>/`, which git ignores. The program is
 
 A page for browsing thousands of seeds quickly: the C++ core compiled to
 WebAssembly with [Emscripten](https://emscripten.org/), plus a plain
-HTML/JavaScript front end (`web/`). It needs no server-side code; any static
-web server works.
+HTML/JavaScript front end (`web/`). A copy runs at
+<https://turtle-art.netlify.app/>; it is deployed by hand, so it may lag
+behind the latest commit until CI/CD is set up. It needs no server-side
+code; any static web server works.
 
 One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
 `EMSDK` at it (the script also looks in `~/emsdk` by itself, and for vcpkg
