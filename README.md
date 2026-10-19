@@ -204,15 +204,16 @@ Using it:
 - Click a picture (or press `Enter` for the first one) to view it large.
   In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `c`
   copy its `turtle-art` command, `Esc` close.
-- **▶ Slideshow** (`s`) shows a new picture every 30 seconds, drawn step by
-  step at 10 steps per second from a clear grid: a random seed with interest
-  above 0.95, at fixed settings (hexagon radius 9, 300 steps, 4 colors,
-  history 2, wrap, turtle). Rings of copies of the picture surround it (2
-  rings, 18 copies, on most screens; 3 on ultrawide ones), so the art fills
-  the screen edge to edge as one seamless pattern, and a turtle wrapping off
-  one side can be followed into the next copy. The copies are only for show: clipped at the screen's edges, never
-  scrolled. `n` skips to the next picture, `f` favorites the current one,
-  `Esc` exits.
+- **▶ Hex screensaver** (`s`) fills the screen with animated art: a new
+  picture every minute, drawn step by step at 10 steps per second from a
+  clear grid. Each is a random seed with interest above 0.95, at fixed
+  settings (hexagon radius 9, 600 steps, 4 colors, history 2, wrap,
+  turtle). Rings of copies surround the picture (2 rings on most screens,
+  3 on ultrawide ones), so the art is one seamless pattern from edge to
+  edge, and a turtle wrapping off one side can be followed into the next
+  copy. The copies are only for show: clipped at the screen's edges, never
+  scrolled. `h` (or a click on the art) hides the HUD, `n` skips to the next
+  picture, `f` favorites the current one, `Esc` exits.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
@@ -386,8 +387,8 @@ decisions go here too; there is no separate list of open questions.
   animation, no script): each tile starts unpainted and gets one `<set>`
   per time it is painted, switching its color class at step / hz seconds
   (`ToAnimatedSvg`). It plays in any browser, also as a plain `<img>`, which
-  is how the explorer's slideshow shows it. `--hz 0` (the default) gives the
-  still picture, unchanged. The slideshow's 300 steps at 10 Hz take exactly
+  is how the explorer's hex screensaver shows it. `--hz 0` (the default) gives the
+  still picture, unchanged. The screensaver's 600 steps at 10 Hz take exactly
   its 30-second period.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).

@@ -371,54 +371,55 @@ $('viewer').addEventListener('click', (e) => {
   if (e.target === $('viewer')) closeViewer();
 });
 
-// ---- Slideshow: a new animated picture every 30 seconds ------------------
+// ---- Hex screensaver: a new animated picture every minute ----------------
 //
 // The animation itself comes from C++ (an SVG that animates itself with
 // SMIL, see ToAnimatedSvg): the page only picks seeds and shows their SVGs.
-// 300 steps at 10 steps per second take 30 seconds, so each picture has
-// just finished drawing when the next one starts, from a clear grid.
+// A picture changes after steps / SCREENSAVER_HZ seconds (600 steps at 10
+// per second: one minute), just as it finishes drawing; the next one starts
+// from a clear grid.
 
-const SLIDESHOW = {
+const SCREENSAVER = {
   shape: 'hexagon', radius: 9, rows: 21, edge: 'wrap', paint: 'turtle',
-  colors: 4, history: 2, steps: 300,
+  colors: 4, history: 2, steps: 600,
 };
-const SLIDESHOW_HZ = 10;
-const SLIDESHOW_MIN_INTEREST = 0.95;
+const SCREENSAVER_HZ = 10;
+const SCREENSAVER_MIN_INTEREST = 0.95;
 // The picture's share of the screen height. Copies of it surround it, as
 // many rings as it takes to fill the screen edge to edge (2 on most
 // screens, 3 on ultrawide ones).
-const SLIDESHOW_SCALE = 0.6;
+const SCREENSAVER_SCALE = 0.6;
 
-let slideTimer = null;
-let slidePicture = null;
-let slideUrl = null;
+let saverTimer = null;
+let saverPicture = null;
+let saverUrl = null;
 
 // Tries random seeds until one is interesting enough. Most are not, but
 // each try takes well under a millisecond at this size.
-function interestingSlidePicture() {
+function interestingSaverPicture() {
   let picture;
   for (let tries = 0; tries < 10000; tries++) {
-    picture = { ...SLIDESHOW, seed: Math.floor(Math.random() * 0x100000000) };
-    if (art.generate(toArtSettings(picture)).entropy > SLIDESHOW_MIN_INTEREST) {
+    picture = { ...SCREENSAVER, seed: Math.floor(Math.random() * 0x100000000) };
+    if (art.generate(toArtSettings(picture)).entropy > SCREENSAVER_MIN_INTEREST) {
       break;
     }
   }
   return picture;
 }
 
-function updateSlideFavorite() {
-  $('slideFav').textContent = isFavorite(slidePicture) ? '★' : '☆';
+function updateSaverFavorite() {
+  $('saverFav').textContent = isFavorite(saverPicture) ? '★' : '☆';
 }
 
-// Sizes the slide frame to the picture's shape, SLIDESHOW_SCALE of the
-// screen height (or less, to fit the width).
-// Returns the frame's height in pixels.
-function sizeSlideFrame() {
-  const { bounds } = layoutFor(slidePicture);
-  const height = Math.min((innerHeight - 90) * SLIDESHOW_SCALE,
-                          ((innerWidth - 24) * SLIDESHOW_SCALE * bounds.height) / bounds.width);
-  $('slideFrame').style.height = `${height}px`;
-  $('slideFrame').style.width = `${(height * bounds.width) / bounds.height}px`;
+// Sizes the frame holding the picture to its shape, SCREENSAVER_SCALE of the
+// screen height (or less, to fit the width), and returns its height in
+// pixels.
+function sizeSaverFrame() {
+  const { bounds } = layoutFor(saverPicture);
+  const height = Math.min((innerHeight - 90) * SCREENSAVER_SCALE,
+                          ((innerWidth - 24) * SCREENSAVER_SCALE * bounds.height) / bounds.width);
+  $('saverFrame').style.height = `${height}px`;
+  $('saverFrame').style.width = `${(height * bounds.width) / bounds.height}px`;
   return height;
 }
 
@@ -427,11 +428,11 @@ function sizeSlideFrame() {
 // the screen. All images share one URL, so the browser plays them in step.
 // CSS translate percentages are of the image's own size, hence offset /
 // picture size.
-function showSlide(url) {
-  const { bounds } = layoutFor(slidePicture);
-  const settings = toArtSettings(slidePicture);
+function showSaverPicture(url) {
+  const { bounds } = layoutFor(saverPicture);
+  const settings = toArtSettings(saverPicture);
   // The screen's size in picture units, for as many rings as fill it.
-  const unitsPerPixel = bounds.height / sizeSlideFrame();
+  const unitsPerPixel = bounds.height / sizeSaverFrame();
   const rings = art.wrapRingsToFill(settings, innerWidth * unitsPerPixel,
                                     innerHeight * unitsPerPixel);
   const copies = art.wrapCopies(settings, rings);
@@ -448,63 +449,74 @@ function showSlide(url) {
   picture.alt = 'Animated turtle-art picture';
   picture.src = url;
   images.push(picture);  // Last, so it is drawn above its copies.
-  $('slideFrame').replaceChildren(...images);
+  $('saverFrame').replaceChildren(...images);
 }
 
-function nextSlide() {
-  clearTimeout(slideTimer);
-  slidePicture = interestingSlidePicture();
-  const svg = art.svg({ ...toArtSettings(slidePicture), hz: SLIDESHOW_HZ });
+function nextSaverPicture() {
+  clearTimeout(saverTimer);
+  saverPicture = interestingSaverPicture();
+  const svg = art.svg({ ...toArtSettings(saverPicture), hz: SCREENSAVER_HZ });
   // New images start their animation from the beginning: a clear grid.
-  const old = slideUrl;
-  slideUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  showSlide(slideUrl);
+  const old = saverUrl;
+  saverUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  showSaverPicture(saverUrl);
   if (old) URL.revokeObjectURL(old);
-  $('slideInfo').textContent = `#${slidePicture.seed}`;
-  $('slideCommand').textContent = `${commandOf(slidePicture)} --hz ${SLIDESHOW_HZ}`;
-  updateSlideFavorite();
-  slideTimer = setTimeout(nextSlide, (slidePicture.steps / SLIDESHOW_HZ) * 1000);
+  $('saverInfo').textContent = `#${saverPicture.seed}`;
+  $('saverCommand').textContent = `${commandOf(saverPicture)} --hz ${SCREENSAVER_HZ}`;
+  updateSaverFavorite();
+  saverTimer = setTimeout(nextSaverPicture, (saverPicture.steps / SCREENSAVER_HZ) * 1000);
 }
 
-function startSlideshow() {
-  $('slideshow').hidden = false;
-  nextSlide();
+function startScreensaver() {
+  $('screensaver').hidden = false;
+  nextSaverPicture();
 }
 
-function stopSlideshow() {
-  clearTimeout(slideTimer);
-  $('slideshow').hidden = true;
+function stopScreensaver() {
+  clearTimeout(saverTimer);
+  $('screensaver').hidden = true;
 }
 
-function favoriteSlide() {
-  toggleFavorite(slidePicture);
-  updateSlideFavorite();
+function favoriteSaverPicture() {
+  toggleFavorite(saverPicture);
+  updateSaverFavorite();
 }
 
-$('slideshowButton').addEventListener('click', startSlideshow);
+// Shows or hides the HUD (buttons and command), leaving only the art.
+function toggleSaverHud() {
+  $('screensaver').classList.toggle('no-hud');
+}
+
+$('screensaverButton').addEventListener('click', startScreensaver);
 // A new size may need more rings. The images reuse the same URL, so the
 // animation carries on where it was.
 window.addEventListener('resize', () => {
-  if (!$('slideshow').hidden) showSlide(slideUrl);
+  if (!$('screensaver').hidden) showSaverPicture(saverUrl);
 });
-$('slideFav').addEventListener('click', favoriteSlide);
-$('slideNext').addEventListener('click', nextSlide);
-$('slideClose').addEventListener('click', stopSlideshow);
+$('saverFav').addEventListener('click', favoriteSaverPicture);
+$('saverNext').addEventListener('click', nextSaverPicture);
+$('saverClose').addEventListener('click', stopScreensaver);
+$('saverHud').addEventListener('click', toggleSaverHud);
+// Clicking the art toggles the HUD too, so it can come back without keys.
+$('saverFrame').addEventListener('click', toggleSaverHud);
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-  if (!$('slideshow').hidden) {
-    const slideActions = { Escape: stopSlideshow, f: favoriteSlide, n: nextSlide };
-    if (slideActions[e.key]) {
+  if (!$('screensaver').hidden) {
+    const saverActions = {
+      Escape: stopScreensaver, f: favoriteSaverPicture, n: nextSaverPicture,
+      h: toggleSaverHud,
+    };
+    if (saverActions[e.key]) {
       e.preventDefault();
-      slideActions[e.key]();
+      saverActions[e.key]();
     }
     return;
   }
   if ($('viewer').hidden) {
     if (e.key === 'g') toggleFavoritesView();
     if (e.key === 'r') randomStart();
-    if (e.key === 's') startSlideshow();
+    if (e.key === 's') startScreensaver();
     // Enter opens the first picture, to browse with the keyboard alone.
     if (e.key === 'Enter' && items.length > 0) openViewer(0);
     return;

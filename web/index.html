@@ -57,8 +57,8 @@
     #viewer canvas { max-width: 100%; max-height: calc(100vh - 110px); }
     #viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                    justify-content: center; }
-    #viewer code, #slideshow code { color: #ccc; }
-    #slideshow {
+    #viewer code, #screensaver code { color: #ccc; }
+    #screensaver {
       z-index: 2;
       position: fixed; inset: 0; background: #111; color: #eee;
       display: flex; flex-direction: column; align-items: center;
@@ -68,15 +68,17 @@
          cannot be scrolled even by script or keyboard. */
       overflow: clip;
     }
-    #slideshow[hidden] { display: none; }
-    #slideFrame { position: relative; flex: none; }
-    #slideFrame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-    #slideshow .bar, #slideshow code {
+    #screensaver[hidden] { display: none; }
+    #saverFrame { position: relative; flex: none; }
+    #saverFrame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+    #screensaver .bar, #screensaver code {
       position: relative; z-index: 1;  /* Above the copies. */
       background: rgba(17, 17, 17, 0.8); padding: 2px 8px; border-radius: 4px;
     }
-    #slideshow .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    #screensaver .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                       justify-content: center; }
+    /* HUD off: only the art. */
+    #screensaver.no-hud .bar, #screensaver.no-hud code { display: none; }
     kbd { border: 1px solid #888; border-radius: 3px; padding: 0 4px; font-size: 12px; }
   </style>
 </head>
@@ -111,9 +113,9 @@
     </label>
     <label>size <input id="thumb" type="range" min="80" max="400" step="10"></label>
     <button id="favoritesButton" title="Show favorites (g)">★ Favorites</button>
-    <button id="slideshowButton" title="Slideshow: a new animated picture every 30 seconds (s)">▶ Slideshow</button>
+    <button id="screensaverButton" title="Hex screensaver: a new animated picture every minute, filling the screen (s)">▶ Hex screensaver</button>
     <button id="copyFavorites" hidden title="Copy every favorite as a turtle-art command">Copy as commands</button>
-    <span id="status" title="Keys: r random start · g favorites · s slideshow · Enter open first picture"></span>
+    <span id="status" title="Keys: r random start · g favorites · s screensaver · Enter open first picture"></span>
   </header>
   <main id="grid"></main>
   <div id="empty" hidden>No favorites yet. Click ☆ on a picture, or press <kbd>f</kbd> in the viewer.</div>
@@ -135,15 +137,16 @@
       <kbd>d</kbd> download · <kbd>c</kbd> copy command · <kbd>Esc</kbd> close</div>
   </div>
 
-  <div id="slideshow" hidden>
-    <div id="slideFrame"></div>
+  <div id="screensaver" hidden>
+    <div id="saverFrame"></div>
     <div class="bar">
-      <span id="slideInfo"></span>
-      <button id="slideFav" title="Favorite (f)">☆</button>
-      <button id="slideNext" title="Next picture now (n)">⏭</button>
-      <button id="slideClose" title="Close (Esc)">✕</button>
+      <span id="saverInfo"></span>
+      <button id="saverFav" title="Favorite (f)">☆</button>
+      <button id="saverNext" title="Next picture now (n)">⏭</button>
+      <button id="saverHud" title="Hide this bar; press h or click the art to bring it back">Hide HUD (h)</button>
+      <button id="saverClose" title="Close (Esc)">✕</button>
     </div>
-    <code id="slideCommand"></code>
+    <code id="saverCommand"></code>
   </div>
 
   <script type="module" src="app.js"></script>
