@@ -10,6 +10,7 @@
 #include "color.h"
 #include "grid.h"
 #include "hex.h"
+#include "palette.h"
 
 namespace turtle_art {
 namespace {
@@ -20,22 +21,6 @@ constexpr double kTileSize = 10.0;
 // Width of a pointy-top hexagon, from its left side to its right side.
 // std::numbers::sqrt3 (C++20) is the constant sqrt(3) as a double.
 constexpr double kTileWidth = std::numbers::sqrt3 * kTileSize;
-
-// Fill colors, one per Color, in the same order as the enum values. Runs
-// with fewer paints use the first ones.
-// std::string_view (C++17) is a read-only view of characters stored
-// elsewhere, here string literals, without copying them.
-constexpr std::array<std::string_view, kMaxPaintCount + 1> kFills = {
-    "#f5f0e6",  // kUnpainted: off-white background.
-    "#e63946",  // kPaint1: red.
-    "#f4a261",  // kPaint2: orange.
-    "#2a9d8f",  // kPaint3: teal.
-    "#264653",  // kPaint4: dark blue.
-    "#8ab17d",  // kPaint5: sage green.
-    "#9b5de5",  // kPaint6: purple.
-    "#00b4d8",  // kPaint7: sky blue.
-    "#ffd166",  // kPaint8: yellow.
-};
 
 struct Point {
   double x = 0.0;
@@ -80,12 +65,12 @@ std::string Header() {
     points += std::format("{:.2f},{:.2f}", corner.x, corner.y);
   }
   std::string styles;
-  for (std::size_t i = 0; i < kFills.size(); ++i) {
+  for (std::size_t i = 0; i < kPalette.size(); ++i) {
     // The stroke, in the fill color, covers the thin seams that
     // anti-aliasing would otherwise leave between neighboring tiles. In a
     // format pattern, {{ and }} print literal braces.
-    styles +=
-        std::format(".c{}{{fill:{};stroke:{}}}", i, kFills.at(i), kFills.at(i));
+    styles += std::format(".c{}{{fill:{};stroke:{}}}", i, kPalette.at(i),
+                          kPalette.at(i));
   }
   return std::format(
       "  <defs><polygon id=\"t\" points=\"{}\" stroke-width=\"0.5\"/>"
