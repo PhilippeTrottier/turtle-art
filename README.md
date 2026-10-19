@@ -3,8 +3,8 @@
 Procedural art made by a turtle walking on a hexagonal grid.
 
 > **Status:** the command-line program and the web explorer work on
-> Windows/MSVC. The Linux/macOS presets have not been run yet. Open
-> questions and assumptions are in [QUESTIONS.md](QUESTIONS.md).
+> Windows/MSVC, and the tests pass natively and as WebAssembly. The
+> Linux/macOS presets have not been run yet.
 
 ## What it does
 
@@ -31,7 +31,10 @@ directions) and a **current color**. Each step:
    - **turn left** 60°,
    - **turn right** 60°,
    - **change color** to the next color in the palette (wrapping around).
-3. **Paint** the current tile with the current color.
+3. **Paint** the current tile: with the turtle's current color (`--paint
+   turtle`, the default), or with the palette color after the tile's own
+   (`--paint cycle`, as in Langton's ant, so every visit changes the tile;
+   the turtle's own color, and so *change color*, then has no effect).
 4. **Move** one tile forward along the heading.
 
 The run ends after `--steps` steps. With `--edge wrap` (the default) a move
@@ -41,10 +44,9 @@ grid.
 
 Note: a turtle that only turns by 60° cannot come back to a tile in fewer than
 6 moves (except on small wrapping grids, where wrapping around can bring it
-back sooner). So the previous tiles
-it senses (at most 5) still hold the colors it just painted, and only the
-tile it stands on can hold an older color. That one tile is how the grid
-feeds back into the walk, as in
+back sooner). So the previous tiles it senses (at most 5) still hold the
+colors it just painted, and only the tile it stands on can hold an older
+color. That one tile is how the grid feeds back into the walk, as in
 [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
 
 ### Colors
@@ -81,6 +83,7 @@ feeds back into the walk, as in
 | `--steps`  | Maximum number of steps                  | `10000`          |
 | `--radius` | Grid radius in tiles                     | `50`             |
 | `--edge`   | At the edge: `wrap` around to the opposite side, or `stop` the walk | `wrap` |
+| `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `3` |
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
@@ -222,7 +225,6 @@ that decides what a picture looks like stays in C++.
 | `scripts/`           | `explorer.sh`: builds and serves the web explorer |
 | `.claude/launch.json`| Lets Claude Code's built-in browser start the explorer |
 | `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html` and `app.js` |
-| `QUESTIONS.md`       | Open questions and assumptions awaiting review   |
 
 ### Code map
 
@@ -240,7 +242,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
 | `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
-| `turtle.h`        | `Turtle::Step` (sense, act, paint, move) and `Walk`        |
+| `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move) and `Walk` |
 | `svg.h`           | `ToSvg`: a grid as an SVG string                           |
 | `art.h`           | `ArtSettings`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
@@ -322,6 +324,66 @@ Style notes that follow from the Google guide:
   (`main`, and `Grid`'s move constructor with MSVC's `std::map`), a
   `NOLINT(bugprone-exception-escape)` says so, with a comment explaining why.
 - Files are `snake_case.h` / `snake_case.cc`.
+
+## Decisions
+
+Settled choices, with the reason, so they are not reopened by accident. New
+decisions go here too; there is no separate list of open questions.
+
+- **Spelling:** American English everywhere (`Neighbor`, `Color`), as in the
+  Google style guide.
+- **Turtle start:** center tile, heading east, color 1. *Change color*
+  happens before painting, so the current tile gets the new color.
+- **Randomness:** `std::mt19937` with our own `% 4` mapping to actions,
+  never `std::uniform_int_distribution`: only the engine's output is the
+  same in every standard library, and pictures must not depend on the
+  platform. All actions are equally likely.
+- **Defaults:** `--edge wrap` and seed 30. With `stop`, most turtles walk
+  off the grid within a few dozen steps. `--paint turtle` stays the default
+  so seeds keep their pictures; `cycle` is opt-in.
+- **Limits:** 1-8 colors and history 1-6, so a rule table has at most
+  9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
+- **Pictures:** one fixed palette (`palette.h`) shared by every output;
+  unpainted tiles are drawn, so the whole hexagon always shows.
+- **Interest score:** color entropy (`grid_stats.h`). It hides flat fills and
+  tiny loops well, but cannot tell structure from noise, so it helps less
+  with `--paint cycle`, where many seeds look like confetti.
+- **C++ features left out on purpose:** templates, inheritance, smart
+  pointers and exceptions. The Google guide discourages most of them and the
+  program does not need them (KISS). Look elsewhere to practice them.
+- **clang-tidy:** `[[nodiscard]]` and 1-byte enums are not required (noise
+  for this codebase); lower_case accessors like `radius()` are allowed, as in
+  the Google guide.
+- **Presets:** Debug native presets plus a Release `wasm` preset; no native
+  Release presets until something needs the speed (YAGNI).
+- **Emscripten:** a compiler, so vcpkg cannot install it. It is pinned to
+  6.0.12 in the README and in `CMakeLists.txt`, which warns on a mismatch.
+- **Web page:** plain HTML/JavaScript, not unit tested, so it holds no
+  picture logic. Favorites live in the browser's localStorage, per web
+  address, so the explorer always uses port 8001.
+- **History:** past commits were not re-verified from clean checkouts; each
+  was built and tested when made. CI will check future ones once the
+  repository is on GitHub.
+
+## Invariants
+
+Things that must change together. Breaking the first two silently changes
+every picture for every seed.
+
+1. **Rule table filling** (`random_rules.cc`): one `engine()` call per entry,
+   in index order, where an index reads the sensed colors as digits in base
+   colors + 1, oldest first (`RuleTable::IndexOf`). Guarded by
+   `RandomRulesTest.SeedOneStartsWithTurnLeft`.
+2. **Enum orders:** `Action` (its value is the random number), `Direction`
+   (counter-clockwise, so turning is ±1), `Color` (its value is the palette
+   index, the SVG class `cN` and the byte the explorer receives).
+3. **Tile order and geometry:** `Grid::Tiles()` order and the hexagon layout
+   in `svg.cc` are mirrored in `web/app.js` (`centersFor`).
+4. **Settings:** each `ArtSettings` field appears in `RunArt`, `main.cc`,
+   the options table above, `web/bindings.cc` (`value_object`) and
+   `web/app.js` (`DEFAULTS`, `pictureOf`, `toArtSettings`, `commandOf`).
+   Adding a knob means touching all of them, plus tests in
+   `tests/art_test.cc`.
 
 ## Out of scope (for now)
 
