@@ -2,28 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "gallery-windows",
-      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "runtimeArgs": ["scripts/make-gallery.sh", "--serve"],
-      "port": 8000
-    },
-    {
-      "name": "gallery",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": ["scripts/make-gallery.sh", "--serve"],
-      "port": 8000
-    },
-    {
       "name": "explorer-windows",
       "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
       "runtimeArgs": ["scripts/explorer.sh"],
-      "port": 8001
+      "port": 8001,
+      "autoPort": false
     },
     {
       "name": "explorer",
       "runtimeExecutable": "bash",
       "runtimeArgs": ["scripts/explorer.sh"],
-      "port": 8001
+      "port": 8001,
+      "autoPort": false
     }
   ]
 }

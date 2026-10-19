@@ -2,8 +2,8 @@
 
 Procedural art made by a turtle walking on a hexagonal grid.
 
-> **Status:** the command-line program, the gallery and the web explorer
-> work on Windows/MSVC. The Linux/macOS presets have not been run yet. Open
+> **Status:** the command-line program and the web explorer work on
+> Windows/MSVC. The Linux/macOS presets have not been run yet. Open
 > questions and assumptions are in [QUESTIONS.md](QUESTIONS.md).
 
 ## What it does
@@ -122,16 +122,6 @@ ctest --preset msvc
 Build output goes to `build/<preset>/`, which git ignores. The program is
 `build/<preset>/src/turtle-art` (`.exe` on Windows).
 
-To render about 70 sample pictures and a page showing them in themed tabs
-(highlights, stop vs wrap, grid size, colors, history, common endings), run
-`scripts/make-gallery.sh` (bash; Git Bash on Windows) after building, then
-open `gallery/demo.html`. The samples are listed in the script, one
-`sample` line each, so adding one is a one-line change. Add `--serve` to also
-serve the gallery at <http://localhost:8000/demo.html> (needs Python 3), for
-browsers that will not open local files. `.claude/launch.json` runs the same thing for Claude
-Code's built-in browser; on Windows it calls Git Bash by its full path,
-because plain `bash` there may be WSL's, which cannot write Windows paths.
-
 ### Web explorer
 
 A page for browsing thousands of seeds quickly: the C++ core compiled to
@@ -167,9 +157,13 @@ compiles the unit tests to WebAssembly, and `ctest --preset wasm` runs them
 with Node.js (installed by the Emscripten SDK), so the library is tested on
 the platform the explorer runs on.
 
-Favorites are saved per web address, port included: if the explorer is
-served on another port, earlier favorites do not show. Use **Copy as
-commands** to keep them.
+Favorites are saved per web address, port included, so the explorer always
+uses port 8001: on another port, earlier favorites would not show. Use
+**Copy as commands** to keep them anywhere else.
+
+`.claude/launch.json` lets Claude Code's built-in browser start the
+explorer. On Windows it calls Git Bash by its full path, because plain
+`bash` there may be WSL's, which cannot write Windows paths.
 
 Using it:
 
@@ -219,7 +213,8 @@ that decides what a picture looks like stays in C++.
 | `CMakeLists.txt`     | Top-level build, shared compiler settings        |
 | `CMakePresets.json`  | Configure/build/test presets per compiler        |
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
-| `scripts/`           | `make-gallery.sh`: renders themed samples and `gallery/demo.html`; `explorer.sh`: builds and serves the web explorer |
+| `scripts/`           | `explorer.sh`: builds and serves the web explorer |
+| `.claude/launch.json`| Lets Claude Code's built-in browser start the explorer |
 | `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html` and `app.js` |
 | `QUESTIONS.md`       | Open questions and assumptions awaiting review   |
 
