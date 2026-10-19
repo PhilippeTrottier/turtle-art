@@ -7,6 +7,7 @@
 #include "color.h"
 #include "grid.h"
 #include "tile.h"
+#include "turtle.h"
 
 namespace turtle_art {
 namespace {
@@ -54,6 +55,46 @@ TEST(SvgTest, SingleSquareTileIsATenUnitSquare) {
   const std::string svg = ToSvg(Grid::Rectangle(1, 1));
   EXPECT_NE(svg.find("viewBox=\"-5.00 -5.00 10.00 10.00\""), std::string::npos);
   EXPECT_NE(svg.find("points=\"5.00,-5.00 5.00,5.00 -5.00,5.00 -5.00,-5.00\""),
+            std::string::npos);
+}
+
+TEST(SvgTest, AnimationWithoutPaintsIsTheUnpaintedPicture) {
+  const Grid grid = Grid::Hexagon(1);
+  EXPECT_EQ(ToAnimatedSvg(grid, {}, 10), ToSvg(grid));
+}
+
+TEST(SvgTest, AnimatedTileStartsUnpaintedThenTakesItsColor) {
+  Grid grid = Grid::Hexagon(0);
+  grid.Paint(Tile{}, Color::kPaint2);
+  const std::string svg =
+      ToAnimatedSvg(grid, {{.tile = Tile{}, .color = Color::kPaint2}}, 10);
+  EXPECT_NE(svg.find("class=\"c0\"><set attributeName=\"class\" to=\"c2\" "
+                     "begin=\"0.000s\" fill=\"freeze\"/></use>"),
+            std::string::npos);
+}
+
+TEST(SvgTest, AnimatedStepBeginsAtStepDividedByHertz) {
+  const Grid grid = Grid::Hexagon(2);
+  const std::string svg =
+      ToAnimatedSvg(grid,
+                    {{.tile = Tile{}, .color = Color::kPaint1},
+                     {.tile = Tile{.q = 1, .r = 0}, .color = Color::kPaint1},
+                     {.tile = Tile{.q = 2, .r = 0}, .color = Color::kPaint1},
+                     {.tile = Tile{.q = 2, .r = -1}, .color = Color::kPaint3}},
+                    10);
+  // The fourth step (index 3) at 10 steps per second begins at 0.3 s.
+  EXPECT_NE(svg.find("to=\"c3\" begin=\"0.300s\""), std::string::npos);
+}
+
+TEST(SvgTest, RepaintedTileGetsOneChangePerPaint) {
+  const Grid grid = Grid::Hexagon(1);
+  const std::string svg =
+      ToAnimatedSvg(grid,
+                    {{.tile = Tile{}, .color = Color::kPaint1},
+                     {.tile = Tile{}, .color = Color::kPaint4}},
+                    2);
+  EXPECT_NE(svg.find("to=\"c1\" begin=\"0.000s\" fill=\"freeze\"/><set "
+                     "attributeName=\"class\" to=\"c4\" begin=\"0.500s\""),
             std::string::npos);
 }
 
