@@ -83,14 +83,14 @@ TEST(PngTest, ScaledTileIsASquareOfPixels) {
   EXPECT_EQ(rgba[48 + 8], 0xf5);
 }
 
-TEST(PngTest, DarkThemePixelIsDarkBrown) {
+TEST(PngTest, DarkThemePixelIsBlueBlack) {
   const std::vector<std::uint8_t> png =
       ToPng(Grid::Rectangle(1, 1), 1, Theme::kDark);
   std::vector<std::uint8_t> rgba;
   unsigned width = 0;
   unsigned height = 0;
   ASSERT_EQ(lodepng::decode(rgba, width, height, png), 0U);
-  EXPECT_EQ(rgba, (std::vector<std::uint8_t>{0x29, 0x23, 0x1e, 0xff}));
+  EXPECT_EQ(rgba, (std::vector<std::uint8_t>{0x09, 0x18, 0x1f, 0xff}));
 }
 
 // In a PNG file, byte 24 is the bit depth and byte 25 the color type, of

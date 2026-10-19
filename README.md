@@ -91,7 +91,7 @@ On square tiles a turtle can come back in 4 moves, so with a history of 5 or
 - The turtle starts with the first palette color; it never paints *unpainted*.
 - *Change color* moves to the next palette color, cycling 1 → 2 → … → N → 1.
 - Two palettes (`--theme`): **light**, colors on off-white (the default),
-  and **dark**, warm muted colors (after Gruvbox Material) on a dark brown.
+  and **dark**, the light palette's hues on a deep blue-black, with their lightness order flipped.
   The theme only changes how a picture looks, never the
   walk.
 
@@ -133,7 +133,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
-| `--theme`  | Palette: `light` (colors on off-white) or `dark` (warm muted colors on dark brown) | `light` |
+| `--theme`  | Palette: `light` (colors on off-white) or `dark` (the same hues on blue-black) | `light` |
 | `--hz`     | Animate the SVG, replaying the walk at this many steps per second; 0 for a still picture | `0` |
 | `--out`    | File to write: an SVG, or a PNG (one pixel per tile; rectangle grids, no `--hz`) when it ends with `.png` | `turtle-art.svg` |
 
@@ -508,9 +508,12 @@ decisions go here too; there is no separate list of open questions.
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** two fixed palettes (`palette.h`), light and dark, shared by
   every output; unpainted tiles are drawn, so the whole grid always shows.
-  The dark palette is warm and muted on purpose (after Gruvbox Material, on
-  #29231e rather than pitch black): bright colors on black glowed like
-  neon, and a cool palette felt cold.
+  The dark palette keeps what makes the light one work, measured in OKLCH:
+  a warm pair (red, orange) against a cool pair (teal, blue), one vivid
+  paint (red), a near-neutral anchor (blue), and a wide spread of lightness
+  between tiles, flipped for the dark background (the anchor becomes the
+  lightest paint). Tried and dropped: bright paints on pure black (neon)
+  and Gruvbox (all warm, all the same lightness: muddy).
 - **PNG:** only for square tiles, one pixel per tile, so the file is exact
   and can be scaled up without blur in any image editor (the explorer also
   offers 2 x 2 and 3 x 3 pixels per tile, `ToPng`'s `pixels_per_tile`, for
