@@ -31,12 +31,22 @@
       "displayName": "Linux/macOS, Clang",
       "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" },
       "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "wasm",
+      "displayName": "Web explorer, WebAssembly via Emscripten (any OS)",
+      "description": "Needs the Emscripten SDK, with EMSDK pointing to it. No vcpkg: the web build has no dependencies. Release, since it is for browsing at speed. clang-tidy is off: the native presets already lint the shared code.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "TURTLE_ART_CLANG_TIDY": "OFF" }
     }
   ],
   "buildPresets": [
     { "name": "msvc", "configurePreset": "msvc" },
     { "name": "gcc", "configurePreset": "gcc" },
-    { "name": "clang", "configurePreset": "clang" }
+    { "name": "clang", "configurePreset": "clang" },
+    { "name": "wasm", "configurePreset": "wasm" }
   ],
   "testPresets": [
     {

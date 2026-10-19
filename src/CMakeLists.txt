@@ -16,7 +16,10 @@ add_library(turtle_art_lib
 target_include_directories(turtle_art_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(turtle_art_lib PUBLIC turtle_art_options)
 
-# The command-line program: a thin layer over turtle_art_lib.
-find_package(CLI11 CONFIG REQUIRED)
-add_executable(turtle-art main.cc)
-target_link_libraries(turtle-art PRIVATE turtle_art_lib CLI11::CLI11)
+# The command-line program: a thin layer over turtle_art_lib. Not built for
+# the web, which has its own front end (web/).
+if(NOT EMSCRIPTEN)
+  find_package(CLI11 CONFIG REQUIRED)
+  add_executable(turtle-art main.cc)
+  target_link_libraries(turtle-art PRIVATE turtle_art_lib CLI11::CLI11)
+endif()

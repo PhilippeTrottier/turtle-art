@@ -44,5 +44,12 @@ endif()
 
 add_subdirectory(src)
 
-enable_testing()
-add_subdirectory(tests)
+# EMSCRIPTEN is set by Emscripten's toolchain file (the `wasm` preset). That
+# build makes the web explorer; the tests and command-line program are built
+# natively by the other presets.
+if(EMSCRIPTEN)
+  add_subdirectory(web)
+else()
+  enable_testing()
+  add_subdirectory(tests)
+endif()

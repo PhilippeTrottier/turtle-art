@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>turtle-art explorer</title>
+  <style>
+    :root {
+      --bg: #f6f4ef; --card: #ffffff; --text: #1f1f1f; --muted: #6b6b6b;
+      --border: #dcd7cc; --accent: #e63946; --overlay: rgba(20, 20, 20, 0.92);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1b1d21; --card: #25282d; --text: #e8e6e1; --muted: #9a9a9a;
+        --border: #3a3e45; --accent: #f4a261;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 14px/1.4 system-ui, sans-serif;
+    }
+    header {
+      position: sticky; top: 0; z-index: 1; padding: 8px 16px;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    }
+    header label { display: flex; gap: 4px; align-items: center; color: var(--muted); }
+    header input[type=number] { width: 6.5em; }
+    header select, header input, header button { font: inherit; }
+    #status { color: var(--muted); margin-left: auto; }
+    button.active { outline: 2px solid var(--accent); }
+    main {
+      padding: 12px 16px; display: grid; gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(var(--thumb, 160px), 1fr));
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px;
+    }
+    .card canvas { display: block; width: 100%; height: auto; cursor: zoom-in; }
+    .meta { display: flex; justify-content: space-between; align-items: center;
+            color: var(--muted); font-size: 12px; padding: 2px 2px 0; }
+    .star { border: 0; background: none; font-size: 18px; line-height: 1;
+            cursor: pointer; color: var(--muted); padding: 0 2px; }
+    .star.on { color: var(--accent); }
+    #sentinel { height: 1px; }
+    #empty { padding: 24px 16px; color: var(--muted); }
+    #viewer {
+      z-index: 2;
+      position: fixed; inset: 0; background: var(--overlay); color: #eee;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 10px; padding: 12px;
+    }
+    #viewer[hidden] { display: none; }
+    #viewer canvas { max-width: 100%; max-height: calc(100vh - 110px); }
+    #viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+                   justify-content: center; }
+    #viewer code { color: #ccc; }
+    kbd { border: 1px solid #888; border-radius: 3px; padding: 0 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>turtle-art</strong>
+    <label>edge
+      <select id="edge"><option>wrap</option><option>stop</option></select>
+    </label>
+    <label>colors <input id="colors" type="number" min="1" max="8"></label>
+    <label>history <input id="history" type="number" min="1" max="6"></label>
+    <label>radius <input id="radius" type="number" min="1" max="150"></label>
+    <label>steps <input id="steps" type="number" min="1" max="200000" step="1000"></label>
+    <label>from seed <input id="start" type="number" min="0" max="4294967295"></label>
+    <button id="random" title="Start from a random seed (r)">🎲</button>
+    <label title="Hide pictures whose color entropy is below this. Flat fills and tiny loops score near 0.">min interest
+      <input id="minEntropy" type="range" min="0" max="2.5" step="0.05">
+      <span id="minEntropyValue"></span>
+    </label>
+    <label>size <input id="thumb" type="range" min="80" max="400" step="10"></label>
+    <button id="favoritesButton" title="Show favorites (g)">★ Favorites</button>
+    <button id="copyFavorites" hidden title="Copy every favorite as a turtle-art command">Copy as commands</button>
+    <span id="status" title="Keys: r random start · g favorites · Enter open first picture"></span>
+  </header>
+  <main id="grid"></main>
+  <div id="empty" hidden>No favorites yet. Click ☆ on a picture, or press <kbd>f</kbd> in the viewer.</div>
+  <div id="sentinel"></div>
+
+  <div id="viewer" hidden>
+    <canvas id="big"></canvas>
+    <div class="bar">
+      <button id="prev" title="Previous (←)">←</button>
+      <button id="fav" title="Favorite (f)">☆</button>
+      <button id="next" title="Next (→)">→</button>
+      <span id="info"></span>
+      <button id="download" title="Download SVG (d)">SVG</button>
+      <button id="copy" title="Copy command (c)">Copy command</button>
+      <button id="close" title="Close (Esc)">✕</button>
+    </div>
+    <code id="command"></code>
+    <div><kbd>←</kbd> <kbd>→</kbd> browse · <kbd>f</kbd> favorite ·
+      <kbd>d</kbd> download · <kbd>c</kbd> copy command · <kbd>Esc</kbd> close</div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
