@@ -55,5 +55,12 @@ add_subdirectory(tests)
 # EMSCRIPTEN is set by Emscripten's toolchain (the `wasm` preset). That build
 # also makes the web explorer.
 if(EMSCRIPTEN)
+  # The Emscripten version the project is tested with. vcpkg cannot pin a
+  # compiler, so this warns when a different one is installed (see README).
+  set(TURTLE_ART_EMSCRIPTEN_VERSION 6.0.12)
+  if(NOT EMSCRIPTEN_VERSION VERSION_EQUAL TURTLE_ART_EMSCRIPTEN_VERSION)
+    message(WARNING "Emscripten ${EMSCRIPTEN_VERSION} found; this project "
+                    "is tested with ${TURTLE_ART_EMSCRIPTEN_VERSION}.")
+  endif()
   add_subdirectory(web)
 endif()

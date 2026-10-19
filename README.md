@@ -93,8 +93,9 @@ tiles within a few hundred steps (see QUESTIONS.md).
 You need:
 
 - CMake 3.25 or newer.
-- A C++20 compiler: MSVC (Visual Studio 2022 with *Desktop development with
-  C++*) on Windows, GCC or Clang on Linux/macOS.
+- A C++20 compiler with `std::format`: MSVC from Visual Studio 2022 (with
+  *Desktop development with C++*) on Windows, GCC 13+ or Clang 17+ on
+  Linux/macOS.
 - [Ninja](https://ninja-build.org/), used by every preset.
 - [vcpkg](https://learn.microsoft.com/vcpkg/get_started/get-started), with the
   `VCPKG_ROOT` environment variable pointing to it. CMake installs the
@@ -134,7 +135,8 @@ One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
 compiler toolchain, like MSVC or GCC, so vcpkg does not install it; vcpkg
 expects it to be installed already, and uses it to build the web build's
 packages (GoogleTest) through its `wasm32-emscripten` triplet. Use the version the explorer is tested
-with, **6.0.12**, so everyone builds the same thing:
+with, **6.0.12**, so everyone builds the same thing (configuring warns if
+another version is found):
 
 ```bash
 git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
@@ -192,7 +194,8 @@ that decides what a picture looks like stays in C++.
   clang-tidy on the `PATH`, or next to MSVC (Visual Studio ships it in
   `VC\Tools\Llvm\x64\bin`). To build without it, configure with
   `-DTURTLE_ART_CLANG_TIDY=OFF`. The `wasm` preset does that, so
-  `web/bindings.cc` is formatted but not linted.
+  `web/bindings.cc` is formatted but not linted. Editing `.clang-tidy` does
+  not trigger a rebuild; after changing it, build with `--clean-first`.
 - **clang-format** applies the Google style from `.clang-format`. Run it on
   the files you changed before committing:
 
