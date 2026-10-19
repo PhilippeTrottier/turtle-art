@@ -4,6 +4,7 @@
 #include <CLI/CLI.hpp>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
   turtle_art::ArtSettings settings;
   std::string out_path = "turtle-art.svg";
 
-  CLI::App app("Procedural art made by a turtle walking on a hexagonal grid.");
+  CLI::App app("Procedural art made by a turtle walking on a grid.");
   // Each option writes straight into the variable it is given.
   // capture_default_str() shows the variable's starting value in --help.
   app.add_option("--seed", settings.seed, "Seed for the rule table")
@@ -29,9 +30,23 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
   app.add_option("--steps", settings.steps, "Maximum number of steps")
       ->capture_default_str()
       ->check(CLI::NonNegativeNumber);
-  app.add_option("--radius", settings.radius, "Grid radius in tiles")
-      ->capture_default_str()
-      ->check(CLI::NonNegativeNumber);
+  // A hexagon grid by default; --width and --height (always together, and
+  // never with --radius) make a rectangle of square tiles instead.
+  CLI::Option* radius = app.add_option("--radius", settings.radius,
+                                       "Hexagon grid: radius in tiles")
+                            ->capture_default_str()
+                            ->check(CLI::NonNegativeNumber);
+  CLI::Option* width =
+      app.add_option("--width", settings.width,
+                     "Rectangle grid of square tiles: columns (with --height)")
+          ->check(CLI::Range(1, std::numeric_limits<int>::max()))
+          ->excludes(radius);
+  app.add_option("--height", settings.height,
+                 "Rectangle grid of square tiles: rows (with --width)")
+      ->check(CLI::Range(1, std::numeric_limits<int>::max()))
+      ->excludes(radius)
+      ->needs(width);
+  width->needs(app.get_option("--height"));
   // CheckedTransformer turns each word into its enum value and rejects any
   // other word.
   const std::map<std::string, turtle_art::EdgeMode> edge_modes = {
@@ -67,6 +82,10 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
   // the error (or the --help text) and returns the right exit code from
   // main. It is the one place where our code meets an exception.
   CLI11_PARSE(app, argc, argv);
+  // An Option converts to true when it was given on the command line.
+  if (*width) {
+    settings.shape = turtle_art::GridShape::kRectangle;
+  }
 
   // std::ofstream closes the file automatically when `out` goes out of
   // scope (RAII: the object owns the resource and releases it when it dies).

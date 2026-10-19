@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "grid.h"
 #include "svg.h"
 #include "turtle.h"
@@ -59,6 +61,25 @@ TEST(ArtTest, PaintModeChangesTheImage) {
                      .steps = 200,
                      .radius = 5,
                      .paint_mode = PaintMode::kCycle}));
+}
+
+TEST(ArtTest, RectangleSettingsMakeSquareTiles) {
+  const std::string svg = MakeArt({.seed = 1,
+                                   .steps = 50,
+                                   .shape = GridShape::kRectangle,
+                                   .width = 8,
+                                   .height = 5});
+  EXPECT_NE(svg.find("points=\"5.00,-5.00 5.00,5.00 -5.00,5.00 -5.00,-5.00\""),
+            std::string::npos);
+}
+
+TEST(ArtTest, RectangleHasWidthTimesHeightTiles) {
+  const Grid grid = RunArt({.seed = 1,
+                            .steps = 50,
+                            .shape = GridShape::kRectangle,
+                            .width = 8,
+                            .height = 5});
+  EXPECT_EQ(grid.Tiles().size(), 40U);
 }
 
 }  // namespace

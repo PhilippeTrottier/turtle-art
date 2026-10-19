@@ -13,7 +13,10 @@ namespace turtle_art {
 Grid RunArt(const ArtSettings& settings) {
   const RuleTable rules = RandomRuleTable(settings.seed, settings.paint_count,
                                           settings.history_length);
-  Grid grid = Grid::Hexagon(settings.radius, settings.edge_mode);
+  Grid grid = settings.shape == GridShape::kHexagon
+                  ? Grid::Hexagon(settings.radius, settings.edge_mode)
+                  : Grid::Rectangle(settings.width, settings.height,
+                                    settings.edge_mode);
   Turtle turtle(settings.paint_mode);
   Walk(turtle, grid, rules, settings.steps);
   return grid;

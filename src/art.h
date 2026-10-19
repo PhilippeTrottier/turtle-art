@@ -18,7 +18,13 @@ struct ArtSettings {
   // color across the whole grid.
   std::uint32_t seed = 1;
   int steps = 15000;  // Maximum number of turtle steps.
-  int radius = 15;    // Grid radius in tiles; must be zero or more.
+  // The grid: a hexagon of `radius` tiles (zero or more), or a rectangle of
+  // `width` x `height` square tiles (each at least 1). The sizes of the
+  // other shape are ignored.
+  GridShape shape = GridShape::kHexagon;
+  int radius = 15;
+  int width = 0;
+  int height = 0;
   // What happens at the grid's edge. Wrapping is the default because with
   // kStop most turtles walk off the grid within a few dozen steps.
   EdgeMode edge_mode = EdgeMode::kWrap;
