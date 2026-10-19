@@ -101,7 +101,7 @@ TEST(SvgTest, RepaintedTileGetsOneChangePerPaint) {
 
 TEST(SvgTest, DarkThemeDrawsUnpaintedTilesDark) {
   EXPECT_NE(ToSvg(Grid::Hexagon(0), Theme::kDark)
-                .find(".c0{fill:#20242c;stroke:#20242c}"),
+                .find(".c0{fill:#29231e;stroke:#29231e}"),
             std::string::npos);
 }
 

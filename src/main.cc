@@ -82,9 +82,9 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
       {"light", turtle_art::Theme::kLight},
       {"dark", turtle_art::Theme::kDark},
   };
-  app.add_option(
-         "--theme", settings.theme,
-         "Palette: colors on off-white (light) or muted on dark slate (dark)")
+  app.add_option("--theme", settings.theme,
+                 "Palette: colors on off-white (light) or warm and muted on "
+                 "dark brown (dark)")
       ->transform(CLI::CheckedTransformer(themes))
       ->default_str("light");
   app.add_option("--hz", settings.hz,

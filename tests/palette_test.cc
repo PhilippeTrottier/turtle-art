@@ -19,8 +19,8 @@ TEST(PaletteTest, LightThemeLeavesTilesOffWhite) {
   EXPECT_EQ(CssColor(PaletteOf(Theme::kLight)[0]), "#f5f0e6");
 }
 
-TEST(PaletteTest, DarkThemeLeavesTilesDarkSlate) {
-  EXPECT_EQ(CssColor(PaletteOf(Theme::kDark)[0]), "#20242c");
+TEST(PaletteTest, DarkThemeLeavesTilesDarkBrown) {
+  EXPECT_EQ(CssColor(PaletteOf(Theme::kDark)[0]), "#29231e");
 }
 
 TEST(PaletteTest, ThemesHaveTheSameNumberOfColors) {
