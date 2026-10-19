@@ -17,8 +17,9 @@ add_library(turtle_art_options INTERFACE)
 target_compile_features(turtle_art_options INTERFACE cxx_std_20)
 target_compile_options(turtle_art_options INTERFACE
   # $<...> is a generator expression: evaluated per compiler at build time.
-  $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>)
+  # /WX and -Werror turn warnings into errors, so none can pile up unseen.
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /permissive->
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 
 # Run clang-tidy (configured in .clang-tidy) on every file as it compiles.
 # Visual Studio ships clang-tidy next to MSVC, so also look there: the
