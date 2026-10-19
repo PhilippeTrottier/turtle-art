@@ -13,6 +13,7 @@
 #include "art.h"
 #include "color.h"
 #include "grid.h"
+#include "palette.h"
 #include "rule_table.h"
 #include "turtle.h"
 
@@ -77,6 +78,14 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
                  "decide each move")
       ->capture_default_str()
       ->check(CLI::Range(1, turtle_art::kMaxHistoryLength));
+  const std::map<std::string, turtle_art::Theme> themes = {
+      {"light", turtle_art::Theme::kLight},
+      {"dark", turtle_art::Theme::kDark},
+  };
+  app.add_option("--theme", settings.theme,
+                 "Palette: colors on off-white (light) or on black (dark)")
+      ->transform(CLI::CheckedTransformer(themes))
+      ->default_str("light");
   app.add_option("--hz", settings.hz,
                  "Animate the SVG at this many steps per second, replaying "
                  "the walk (0: a still picture of the final state)")

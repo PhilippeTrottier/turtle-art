@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "grid.h"
+#include "palette.h"
 #include "rule_table.h"
 #include "turtle.h"
 
@@ -40,6 +41,8 @@ struct ArtSettings {
   // Steps per second to animate the picture at, replaying the walk (see
   // ToAnimatedSvg); 0 for a still picture of the final state.
   double hz = 0.0;
+  // The palette the picture is drawn in. It never changes the walk.
+  Theme theme = Theme::kLight;
 };
 
 // Returns the unpainted grid the settings describe (shape, size, edge).

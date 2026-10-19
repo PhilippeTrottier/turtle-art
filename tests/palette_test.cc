@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "color.h"
+
 namespace turtle_art {
 namespace {
 
@@ -11,6 +13,18 @@ TEST(PaletteTest, CssColorIsHashAndSixHexDigits) {
 
 TEST(PaletteTest, CssColorKeepsLeadingZeros) {
   EXPECT_EQ(CssColor({.red = 0x00, .green = 0x0b, .blue = 0xd8}), "#000bd8");
+}
+
+TEST(PaletteTest, LightThemeLeavesTilesOffWhite) {
+  EXPECT_EQ(CssColor(PaletteOf(Theme::kLight)[0]), "#f5f0e6");
+}
+
+TEST(PaletteTest, DarkThemeLeavesTilesBlack) {
+  EXPECT_EQ(CssColor(PaletteOf(Theme::kDark)[0]), "#000000");
+}
+
+TEST(PaletteTest, ThemesHaveTheSameNumberOfColors) {
+  EXPECT_EQ(PaletteOf(Theme::kDark).size(), kMaxPaintCount + 1U);
 }
 
 }  // namespace

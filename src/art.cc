@@ -47,15 +47,15 @@ Grid RunArt(const ArtSettings& settings) { return Walked(settings).grid; }
 
 std::vector<std::uint8_t> MakePng(const ArtSettings& settings,
                                   int pixels_per_tile) {
-  return ToPng(Walked(settings).grid, pixels_per_tile);
+  return ToPng(Walked(settings).grid, pixels_per_tile, settings.theme);
 }
 
 std::string MakeArt(const ArtSettings& settings) {
   const Run run = Walked(settings);
   if (settings.hz <= 0) {
-    return ToSvg(run.grid);
+    return ToSvg(run.grid, settings.theme);
   }
-  return ToAnimatedSvg(run.grid, run.painted, settings.hz);
+  return ToAnimatedSvg(run.grid, run.painted, settings.hz, settings.theme);
 }
 
 }  // namespace turtle_art

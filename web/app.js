@@ -12,15 +12,18 @@
 // keys.
 
 import createTurtleArt from './turtle_art.js';
-import { FIBONACCI, commandOf, shapeOf, sizeOf,
+import { FIBONACCI, commandOf, shapeOf, sizeOf, themeOf,
          toArtSettings as artSettingsOf } from './pictures.js';
 
 const art = await createTurtleArt();
-const PALETTE = art.palette();
+// Each theme's palette as CSS colors "#rrggbb", indexed by Color value.
+const PALETTES = { light: art.palette(art.Theme.light),
+                   dark: art.palette(art.Theme.dark) };
 const FAVORITES_KEY = 'turtle-art-favorites';
 const DEFAULTS = {
   shape: 'hexagon', radius: 15, rows: 21, edge: 'wrap', paint: 'turtle',
-  colors: 4, history: 1, steps: 15000, start: 1, minEntropy: 0.6, thumb: 160,
+  colors: 4, history: 1, theme: 'light', steps: 15000, start: 1,
+  minEntropy: 0.6, thumb: 160,
 };
 const BATCH = 60;         // Pictures added each time the end comes into view.
 // Requests the worker holds at once: enough that it never waits for the
@@ -33,8 +36,9 @@ const $ = (id) => document.getElementById(id);
 // ---- Settings: the controls, mirrored in the URL's #fragment -------------
 
 const controls = ['shape', 'radius', 'rows', 'edge', 'paint', 'colors',
-                  'history', 'steps', 'start', 'minEntropy', 'thumb'];
-const textControls = ['shape', 'edge', 'paint'];  // The rest are numbers.
+                  'history', 'theme', 'steps', 'start', 'minEntropy', 'thumb'];
+// The rest are numbers.
+const textControls = ['shape', 'edge', 'paint', 'theme'];
 
 function readControls() {
   const s = {};
@@ -65,7 +69,7 @@ function settingsFromHash() {
 function pictureOf(s, seed) {
   return { seed, steps: s.steps, shape: s.shape, radius: s.radius,
            rows: s.rows, edge: s.edge, paint: s.paint, colors: s.colors,
-           history: s.history };
+           history: s.history, theme: s.theme };
 }
 
 // The C++ settings for picture `p`, using this thread's module.
@@ -114,9 +118,11 @@ function layoutFor(p) {
   return layoutCache.get(key);
 }
 
-// The palette as [red, green, blue], parsed from its CSS colors "#rrggbb".
-const PALETTE_RGB = PALETTE.map((css) =>
+// Returns a palette's colors as [red, green, blue], parsed from "#rrggbb".
+const rgbOf = (palette) => palette.map((css) =>
   [1, 3, 5].map((i) => parseInt(css.slice(i, i + 2), 16)));
+const PALETTES_RGB = { light: rgbOf(PALETTES.light),
+                       dark: rgbOf(PALETTES.dark) };
 
 // Returns picture `p`'s width divided by its height.
 function aspectOf(p) {
@@ -132,9 +138,9 @@ function aspectOf(p) {
 // order) onto `canvas`, `width` CSS pixels wide.
 function draw(canvas, p, colors, width) {
   if (shapeOf(p) === 'hexagon') {
-    drawHexagons(canvas, layoutFor(p), colors, width);
+    drawHexagons(canvas, layoutFor(p), colors, PALETTES[themeOf(p)], width);
   } else {
-    drawSquares(canvas, sizeOf(p), colors, width);
+    drawSquares(canvas, sizeOf(p), colors, PALETTES_RGB[themeOf(p)], width);
   }
 }
 
@@ -142,8 +148,8 @@ function draw(canvas, p, colors, width) {
 // from the top left, like an image), then let the canvas scale the image.
 // That stays fast at any size; filling a path of 600,000 squares (610 rows)
 // froze the page.
-function drawSquares(canvas, size, colors, width) {
-  const image = pixelImage(size, colors, PALETTE_RGB);
+function drawSquares(canvas, size, colors, palette, width) {
+  const image = pixelImage(size, colors, palette);
   canvas.width = Math.round(width * devicePixelRatio);
   canvas.height = Math.round(canvas.width * size.height / size.width);
   const ctx = canvas.getContext('2d');
@@ -173,14 +179,14 @@ function pixelImage(size, colors, palette) {
 // Hexagons are drawn from the layout's tile outlines. Tiles of one color go
 // into one path, so each color is a single fill call. Hexagon grids are
 // small enough for this (radius 150 is 68,000 tiles).
-function drawHexagons(canvas, layout, colors, width) {
+function drawHexagons(canvas, layout, colors, palette, width) {
   const { centers, outline, bounds } = layout;
   const scale = (width * devicePixelRatio) / bounds.width;
   canvas.width = Math.round(bounds.width * scale);
   canvas.height = Math.round(bounds.height * scale);
   const ctx = canvas.getContext('2d');
   ctx.setTransform(scale, 0, 0, scale, -bounds.x * scale, -bounds.y * scale);
-  const paths = PALETTE.map(() => new Path2D());
+  const paths = palette.map(() => new Path2D());
   // Slightly oversized tiles hide the seams anti-aliasing leaves.
   const grow = 1.04;
   for (let i = 0; i < colors.length; i++) {
@@ -194,7 +200,7 @@ function drawHexagons(canvas, layout, colors, width) {
     path.closePath();
   }
   paths.forEach((path, color) => {
-    ctx.fillStyle = PALETTE[color];
+    ctx.fillStyle = palette[color];
     ctx.fill(path);
   });
 }
@@ -461,7 +467,7 @@ $('viewer').addEventListener('click', (e) => {
 // toArtSettings hands the C++ code an undefined field.
 const SCREENSAVER = {
   shape: 'hexagon', radius: 9, rows: 21, edge: 'wrap', paint: 'turtle',
-  colors: 4, history: 2, steps: 600,
+  colors: 4, history: 2, theme: 'light', steps: 600,
 };
 const SCREENSAVER_HZ = 10;
 const SCREENSAVER_MIN_INTEREST = 0.95;
@@ -590,14 +596,12 @@ $('saverFrame').addEventListener('click', toggleSaverHud);
 // A full picture, like SCREENSAVER.
 const CARPET = {
   shape: 'golden', radius: 15, rows: 89, edge: 'wrap', paint: 'turtle',
-  colors: 4, history: 2, steps: 155000,
+  colors: 4, history: 2, theme: 'dark', steps: 155000,
 };
 const CARPET_MIN_INTEREST = 1.0;
 const CARPET_PERIOD_MS = 10000;  // Per picture, fades included.
 const CARPET_FADE_MS = 1000;     // As #carpetArt's transition in index.html.
 const CARPET_PIXELS_PER_TILE = 3;
-// The palette with black for unpainted tiles, which suits a dark carpet.
-const CARPET_RGB = [[0, 0, 0], ...PALETTE_RGB.slice(1)];
 
 const carpetWorker = new Worker(new URL('./worker.js', import.meta.url),
                                 { type: 'module' });
@@ -619,7 +623,8 @@ carpetWorker.onmessage = async ({ data }) => {
     findCarpetPicture();
     return;
   }
-  const image = pixelImage(sizeOf(data.picture), data.colors, CARPET_RGB);
+  const image = pixelImage(sizeOf(data.picture), data.colors,
+                           PALETTES_RGB[themeOf(data.picture)]);
   const url = URL.createObjectURL(await image.convertToBlob());
   if (data.run !== carpetRun) {  // Stopped while the image was encoded.
     URL.revokeObjectURL(url);

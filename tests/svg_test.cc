@@ -6,6 +6,7 @@
 
 #include "color.h"
 #include "grid.h"
+#include "palette.h"
 #include "tile.h"
 #include "turtle.h"
 
@@ -95,6 +96,12 @@ TEST(SvgTest, RepaintedTileGetsOneChangePerPaint) {
                     2);
   EXPECT_NE(svg.find("to=\"c1\" begin=\"0.000s\" fill=\"freeze\"/><set "
                      "attributeName=\"class\" to=\"c4\" begin=\"0.500s\""),
+            std::string::npos);
+}
+
+TEST(SvgTest, DarkThemeDrawsUnpaintedTilesBlack) {
+  EXPECT_NE(ToSvg(Grid::Hexagon(0), Theme::kDark)
+                .find(".c0{fill:#000000;stroke:#000000}"),
             std::string::npos);
 }
 

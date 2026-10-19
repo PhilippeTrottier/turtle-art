@@ -13,7 +13,8 @@
 
 namespace turtle_art {
 
-std::vector<std::uint8_t> ToPng(const Grid& grid, int pixels_per_tile) {
+std::vector<std::uint8_t> ToPng(const Grid& grid, int pixels_per_tile,
+                                Theme theme) {
   assert(grid.shape() == GridShape::kRectangle);
   assert(pixels_per_tile >= 1);
   // One byte per tile, its Color value, which is its palette index.
@@ -36,9 +37,9 @@ std::vector<std::uint8_t> ToPng(const Grid& grid, int pixels_per_tile) {
 
   // lodepng (https://lodev.org/lodepng/) encodes PNG. `raw` describes the
   // pixels we hand it, `png` the file it writes: both are palette images
-  // with kPalette's colors; the file packs 4 bits per pixel.
+  // with the theme's colors; the file packs 4 bits per pixel.
   lodepng::State state;
-  for (const Rgb color : kPalette) {
+  for (const Rgb color : PaletteOf(theme)) {
     lodepng_palette_add(&state.info_raw, color.red, color.green, color.blue,
                         255);
     lodepng_palette_add(&state.info_png.color, color.red, color.green,

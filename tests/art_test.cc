@@ -8,6 +8,7 @@
 
 #include "color.h"
 #include "grid.h"
+#include "palette.h"
 #include "svg.h"
 #include "tile.h"
 #include "turtle.h"
@@ -105,6 +106,20 @@ TEST(ArtTest, PositiveHertzAnimates) {
   EXPECT_NE(MakeArt({.seed = 3, .steps = 50, .radius = 4, .hz = 10})
                 .find("<set attributeName=\"class\""),
             std::string::npos);
+}
+
+TEST(ArtTest, ThemeChangesOnlyTheColors) {
+  // The same walk in both palettes: the tiles' colors (their classes) are
+  // the same, only the <style> differs.
+  const Grid light = RunArt({.seed = 3, .steps = 200, .radius = 5});
+  const Grid dark =
+      RunArt({.seed = 3, .steps = 200, .radius = 5, .theme = Theme::kDark});
+  for (const Tile tile : light.Tiles()) {
+    EXPECT_EQ(light.ColorAt(tile), dark.ColorAt(tile));
+  }
+  EXPECT_NE(
+      MakeArt({.seed = 3, .steps = 200, .radius = 5}),
+      MakeArt({.seed = 3, .steps = 200, .radius = 5, .theme = Theme::kDark}));
 }
 
 TEST(ArtTest, MakePngWritesAPngFile) {

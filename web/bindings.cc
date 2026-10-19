@@ -123,10 +123,11 @@ val Png(const turtle_art::ArtSettings& settings, int pixels_per_tile) {
       .new_(emscripten::typed_memory_view(png.size(), png.data()));
 }
 
-// Returns the palette as a JavaScript array of CSS colors, indexed by Color.
-val Palette() {
+// Returns `theme`'s palette as a JavaScript array of CSS colors, indexed by
+// Color.
+val Palette(turtle_art::Theme theme) {
   val colors = val::array();
-  for (const turtle_art::Rgb color : turtle_art::kPalette) {
+  for (const turtle_art::Rgb color : turtle_art::PaletteOf(theme)) {
     colors.call<void>("push", turtle_art::CssColor(color));
   }
   return colors;
@@ -145,6 +146,9 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
   emscripten::enum_<turtle_art::PaintMode>("PaintMode")
       .value("turtle", turtle_art::PaintMode::kTurtleColor)
       .value("cycle", turtle_art::PaintMode::kCycle);
+  emscripten::enum_<turtle_art::Theme>("Theme")
+      .value("light", turtle_art::Theme::kLight)
+      .value("dark", turtle_art::Theme::kDark);
   // JavaScript passes ArtSettings as a plain object with these fields; all
   // of them must be present.
   emscripten::value_object<turtle_art::ArtSettings>("ArtSettings")
@@ -158,7 +162,8 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
       .field("paintCount", &turtle_art::ArtSettings::paint_count)
       .field("historyLength", &turtle_art::ArtSettings::history_length)
       .field("paintMode", &turtle_art::ArtSettings::paint_mode)
-      .field("hz", &turtle_art::ArtSettings::hz);
+      .field("hz", &turtle_art::ArtSettings::hz)
+      .field("theme", &turtle_art::ArtSettings::theme);
   emscripten::function("generate", &Generate);
   emscripten::function("layout", &Layout);
   emscripten::function("wrapCopies", &WrapCopies);

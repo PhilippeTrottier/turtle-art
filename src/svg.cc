@@ -33,8 +33,8 @@ std::string OpeningTag(const Grid& grid) {
 // {0, 0}, and each tile is a short <use> element that places a copy of it.
 // That keeps a large image several times smaller than one full <polygon>
 // per tile. Colors are CSS classes: class "c0" is kUnpainted, "c1" kPaint1,
-// and so on.
-std::string Header(const Grid& grid) {
+// and so on, in `theme`'s palette.
+std::string Header(const Grid& grid, Theme theme) {
   std::string points;
   // A range-based for loop (C++11) visits each element of the vector.
   for (const Point& corner : TileOutline(grid)) {
@@ -45,13 +45,14 @@ std::string Header(const Grid& grid) {
     // number with 2 decimals.
     points += std::format("{:.2f},{:.2f}", corner.x, corner.y);
   }
+  const Palette& palette = PaletteOf(theme);
   std::string styles;
-  for (std::size_t i = 0; i < kPalette.size(); ++i) {
+  for (std::size_t i = 0; i < palette.size(); ++i) {
     // The stroke, in the fill color, covers the thin seams that
     // anti-aliasing would otherwise leave between neighboring tiles. In a
     // format pattern, {{ and }} print literal braces.
-    styles += std::format(".c{}{{fill:{};stroke:{}}}", i, CssColor(kPalette[i]),
-                          CssColor(kPalette[i]));
+    styles += std::format(".c{}{{fill:{};stroke:{}}}", i, CssColor(palette[i]),
+                          CssColor(palette[i]));
   }
   return std::format(
       "  <defs><polygon id=\"t\" points=\"{}\" stroke-width=\"0.5\"/>"
@@ -70,8 +71,8 @@ std::string TileElement(const Grid& grid, Tile tile, Color color) {
 
 }  // namespace
 
-std::string ToSvg(const Grid& grid) {
-  std::string svg = OpeningTag(grid) + Header(grid);
+std::string ToSvg(const Grid& grid, Theme theme) {
+  std::string svg = OpeningTag(grid) + Header(grid, theme);
   for (const Tile tile : grid.Tiles()) {
     svg += TileElement(grid, tile, grid.ColorAt(tile));
   }
@@ -80,7 +81,8 @@ std::string ToSvg(const Grid& grid) {
 }
 
 std::string ToAnimatedSvg(const Grid& grid,
-                          const std::vector<PaintEvent>& painted, double hz) {
+                          const std::vector<PaintEvent>& painted, double hz,
+                          Theme theme) {
   assert(hz > 0);
   // Each tile's color changes, as SMIL <set> elements: at begin time, the
   // tile's class becomes the painted color, and `fill="freeze"` keeps it
@@ -92,7 +94,7 @@ std::string ToAnimatedSvg(const Grid& grid,
         "fill=\"freeze\"/>",
         static_cast<int>(painted[step].color), static_cast<double>(step) / hz);
   }
-  std::string svg = OpeningTag(grid) + Header(grid);
+  std::string svg = OpeningTag(grid) + Header(grid, theme);
   for (const Tile tile : grid.Tiles()) {
     const auto it = changes.find(tile);
     if (it == changes.end()) {

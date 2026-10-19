@@ -3,7 +3,7 @@
 //
 // A picture is a plain object: its seed plus the knobs, e.g.
 //   {seed: 7, steps: 15000, shape: 'hexagon', radius: 15, rows: 21,
-//    edge: 'wrap', paint: 'turtle', colors: 4, history: 1}
+//    edge: 'wrap', paint: 'turtle', colors: 4, history: 1, theme: 'light'}
 // Plain objects can be saved as favorites and sent to the worker as is.
 
 // Rows offered for golden rectangles and squares. Consecutive Fibonacci
@@ -16,6 +16,7 @@ export const FIBONACCI = [5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987];
 // Favorites saved before a knob existed lack it; they used its first value.
 export const paintOf = (p) => p.paint ?? 'turtle';
 export const shapeOf = (p) => p.shape ?? 'hexagon';
+export const themeOf = (p) => p.theme ?? 'light';
 
 // Returns the columns and rows of a golden rectangle or square picture.
 export function sizeOf(p) {
@@ -33,7 +34,8 @@ export function toArtSettings(art, p) {
            shape: hexagon ? art.GridShape.hexagon : art.GridShape.rectangle,
            radius: p.radius, width, height, edgeMode: art.EdgeMode[p.edge],
            paintMode: art.PaintMode[paintOf(p)], paintCount: p.colors,
-           historyLength: p.history, hz: 0 };
+           historyLength: p.history, hz: 0,
+           theme: art.Theme[themeOf(p)] };
 }
 
 // Returns the turtle-art command line that draws picture `p`.
@@ -45,5 +47,5 @@ export function commandOf(p) {
   }
   return `turtle-art --seed ${p.seed} --steps ${p.steps} ${grid}` +
          ` --edge ${p.edge} --paint ${paintOf(p)} --colors ${p.colors}` +
-         ` --history ${p.history}`;
+         ` --history ${p.history} --theme ${themeOf(p)}`;
 }

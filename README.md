@@ -90,6 +90,10 @@ On square tiles a turtle can come back in 4 moves, so with a history of 5 or
   *unpainted* (the background).
 - The turtle starts with the first palette color; it never paints *unpainted*.
 - *Change color* moves to the next palette color, cycling 1 → 2 → … → N → 1.
+- Two palettes (`--theme`): **light**, colors on off-white (the default),
+  and **dark**, colors on black, with paints brightened where they would
+  vanish on black. The theme only changes how a picture looks, never the
+  walk.
 
 ### The rule table
 
@@ -129,6 +133,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
+| `--theme`  | Palette: `light` (colors on off-white) or `dark` (colors on black) | `light` |
 | `--hz`     | Animate the SVG, replaying the walk at this many steps per second; 0 for a still picture | `0` |
 | `--out`    | File to write: an SVG, or a PNG (one pixel per tile; rectangle grids, no `--hz`) when it ends with `.png` | `turtle-art.svg` |
 
@@ -253,9 +258,9 @@ Using it:
 - **▦ Carpet** (`c`) tiles a still picture over the whole window, a new one
   every 10 seconds, fading through black (1 second out, 1 second in). Each
   is a random seed with interest of at least 1.0, at fixed settings (golden
-  rectangle of 89 rows, 155,000 steps, 4 colors, history 2, wrap, turtle).
-  Every tile is exactly 3 x 3 screen pixels, unsmoothed, like a PNG 3×, and
-  unpainted tiles are black instead of cream. Same keys as the screensaver.
+  rectangle of 89 rows, 155,000 steps, 4 colors, history 2, wrap, turtle,
+  dark theme). Every tile is exactly 3 x 3 screen pixels, unsmoothed, like a
+  PNG 3×. Same keys as the screensaver.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
@@ -323,7 +328,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 |-------------------|------------------------------------------------------------|
 | `tile.h`          | `Tile`: a tile's coordinates, `HexDistanceFromCenter`       |
 | `color.h`         | `Color`: unpainted plus up to 8 paints, `NextPaint`        |
-| `palette.h`       | `Rgb` and `kPalette`: the color of each `Color`; `CssColor` |
+| `palette.h`       | `Rgb`, `Theme`, `kLightPalette` / `kDarkPalette` (`PaletteOf`): the color of each `Color`; `CssColor` |
 | `grid.h`          | `EdgeMode`, `GridShape` and `Grid`: `Hexagon(radius)` or `Rectangle(width, height)`, `Tiles`, numbered directions, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
 | `layout.h`        | `TileCenter`, `TileOutline`, `PictureBounds`, `WrapCopyOffsets` and `WrapRingsToFill` (rings of wrap copies): where tiles and copies go in a picture |
 | `grid_stats.h`    | `ColorCounts` and `Entropy`: how interesting a grid is     |
@@ -501,8 +506,10 @@ decisions go here too; there is no separate list of open questions.
   about 31 ms to 5 ms on average. Animations end once the picture is final.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
-- **Pictures:** one fixed palette (`palette.h`) shared by every output;
-  unpainted tiles are drawn, so the whole grid always shows.
+- **Pictures:** two fixed palettes (`palette.h`), light and dark, shared by
+  every output; unpainted tiles are drawn, so the whole grid always shows.
+  The dark palette keeps the light one's hues, but its dark blue (kPaint4)
+  becomes a powder blue, since dark blue vanishes on black.
 - **PNG:** only for square tiles, one pixel per tile, so the file is exact
   and can be scaled up without blur in any image editor (the explorer also
   offers 2 x 2 and 3 x 3 pixels per tile, `ToPng`'s `pixels_per_tile`, for
@@ -587,9 +594,10 @@ order or reordered directions can pass every test.
    Adding a knob means touching all of them, plus tests in
    `tests/art_test.cc`, and two more places in the explorer, or it breaks
    at runtime (Embind's `value_object` needs every field):
-   - `SCREENSAVER` in `web/app.js`, a full picture, needs the knob;
+   - `SCREENSAVER` and `CARPET` in `web/app.js`, full pictures, need the
+     knob;
    - favorites saved before the knob lack it, so read it through a fallback
-     like `paintOf` and `shapeOf` in `web/pictures.js`.
+     like `paintOf`, `shapeOf` and `themeOf` in `web/pictures.js`.
    Changing a default means changing `ArtSettings`, `DEFAULTS` in
    `web/app.js` and the options table together.
 
