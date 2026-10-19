@@ -192,3 +192,22 @@ README or the code, and the entry is deleted.
     refactor touched 17 files; the explorer's first commit added all of
     `web/`). A script that checks out each commit and builds it would
     verify the history; worth running?
+
+## Hardening (after the C++ review)
+
+40. **Done:** `.at()` replaced by `[]` plus asserts (no exceptions, even
+    for bounds checks); compiler warnings are errors; the unit tests also run
+    on the WebAssembly build under Node.js (`ctest --preset wasm`, 83/83
+    passing). Not done, as nitpicks: Google include order in `main.cc` and
+    tests, `std::span` instead of `const std::vector&` in `RuleTable`, an
+    enum-to-integer helper.
+41. **Note:** WASM tests run in Release (the `wasm` preset), so `assert`s
+    are off there; the native Debug presets cover the asserts.
+42. **Heads-up:** Windows Defender blocked the WinLibs MinGW `c++.exe`
+    ("potentially unwanted software") when CMake briefly picked it. The
+    project never uses it, but you may want to check that install.
+43. **Note:** favorites live in localStorage, which is per origin (port
+    included). The launcher picked port 8002 once and 8001 later, so
+    favorites from one run did not show in the other. A fixed port, or
+    export/import of favorites, would fix this; "Copy as commands" is the
+    current way to keep them.

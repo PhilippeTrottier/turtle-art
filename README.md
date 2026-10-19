@@ -142,7 +142,8 @@ web server works.
 One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
 `EMSDK` at it (the script also looks in `~/emsdk` by itself). Emscripten is a
 compiler toolchain, like MSVC or GCC, so vcpkg does not install it; vcpkg
-expects it to be installed already. Use the version the explorer is tested
+expects it to be installed already, and uses it to build the web build's
+packages (GoogleTest) through its `wasm32-emscripten` triplet. Use the version the explorer is tested
 with, **6.0.12**, so everyone builds the same thing:
 
 ```bash
@@ -153,16 +154,22 @@ git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
 ~/emsdk/emsdk install 6.0.12 && ~/emsdk/emsdk activate 6.0.12
 ```
 
-(On Windows, run `emsdk.bat` with the same arguments.) The web build needs
-no packages from vcpkg. Then build and serve
+(On Windows, run `emsdk.bat` with the same arguments.) Then build and serve
 it at <http://localhost:8001/> (needs Python 3):
 
 ```bash
 scripts/explorer.sh
 ```
 
-Or build only, with the `wasm` preset: `cmake --preset wasm`, then
-`cmake --build --preset wasm`; the site is `build/wasm/web/`.
+Or use the `wasm` preset like the native ones: `cmake --preset wasm`, then
+`cmake --build --preset wasm`; the site is `build/wasm/web/`. The same build
+compiles the unit tests to WebAssembly, and `ctest --preset wasm` runs them
+with Node.js (installed by the Emscripten SDK), so the library is tested on
+the platform the explorer runs on.
+
+Favorites are saved per web address, port included: if the explorer is
+served on another port, earlier favorites do not show. Use **Copy as
+commands** to keep them.
 
 Using it:
 
@@ -179,11 +186,13 @@ Using it:
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
 
-The page is not unit tested (see QUESTIONS.md); keep it small. Everything
+The page itself (`index.html`, `app.js`) is not unit tested; keep it small. Everything
 that decides what a picture looks like stays in C++.
 
 ### Formatting and linting
 
+- **Compiler warnings are errors** (`/W4 /WX` with MSVC, `-Wall -Wextra
+  -Wpedantic -Werror` elsewhere), so a warning fails the build.
 - **clang-tidy** runs automatically on every file as it compiles, using the
   checks in `.clang-tidy`. Any finding fails the build. CMake finds
   clang-tidy on the `PATH`, or next to MSVC (Visual Studio ships it in
@@ -306,6 +315,8 @@ Style notes that follow from the Google guide:
   throwing, so `main` catches them and turns them into an exit code.
 - Preconditions (a tile must be on the grid, a count in range) are checked
   with `assert`, which stops Debug builds and costs nothing in Release.
+  Containers are indexed with `[]`, not `.at()`, which reports a bad index
+  by throwing; indices are in range by construction or asserted.
 - Running out of memory ends the program. Where clang-tidy cannot see that
   (`main`, and `Grid`'s move constructor with MSVC's `std::map`), a
   `NOLINT(bugprone-exception-escape)` says so, with a comment explaining why.
