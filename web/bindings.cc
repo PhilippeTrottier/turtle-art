@@ -49,10 +49,12 @@ val Generate(const turtle_art::ArtSettings& settings) {
 // Returns where the tiles of the grid `settings` describe go, as a
 // JavaScript object
 //   {centers: Float32Array, outline: Float32Array, bounds: {x, y, width,
-//    height}}
+//    height}, copies: Float32Array}
 // where centers holds x, y for each tile in Grid::Tiles() order, outline
-// holds x, y for each corner of one tile centered on {0, 0}, and bounds is
-// the picture's box (see layout.h). The page draws with these alone.
+// holds x, y for each corner of one tile centered on {0, 0}, bounds is the
+// picture's box, and copies holds x, y offsets of the copies around the
+// picture that a wrapping turtle moves into (see layout.h). The page draws
+// with these alone.
 val Layout(const turtle_art::ArtSettings& settings) {
   const turtle_art::Grid grid = turtle_art::MakeGrid(settings);
   std::vector<float> centers;
@@ -65,6 +67,11 @@ val Layout(const turtle_art::ArtSettings& settings) {
   for (const turtle_art::Point corner : turtle_art::TileOutline(grid)) {
     outline.push_back(static_cast<float>(corner.x));
     outline.push_back(static_cast<float>(corner.y));
+  }
+  std::vector<float> copies;
+  for (const turtle_art::Point offset : turtle_art::WrapCopyOffsets(grid)) {
+    copies.push_back(static_cast<float>(offset.x));
+    copies.push_back(static_cast<float>(offset.y));
   }
   const turtle_art::Box box = turtle_art::PictureBounds(grid);
   val bounds = val::object();
@@ -80,6 +87,9 @@ val Layout(const turtle_art::ArtSettings& settings) {
   result.set("outline", val::global("Float32Array")
                             .new_(emscripten::typed_memory_view(
                                 outline.size(), outline.data())));
+  result.set("copies", val::global("Float32Array")
+                           .new_(emscripten::typed_memory_view(copies.size(),
+                                                               copies.data())));
   result.set("bounds", bounds);
   return result;
 }

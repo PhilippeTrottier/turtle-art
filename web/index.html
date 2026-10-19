@@ -63,9 +63,19 @@
       position: fixed; inset: 0; background: #111; color: #eee;
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 8px; padding: 12px;
+      /* The copies around the picture spill past the screen: clip them, so
+         they never add scrolling or page size. `clip`, unlike `hidden`,
+         cannot be scrolled even by script or keyboard. */
+      overflow: clip;
     }
     #slideshow[hidden] { display: none; }
-    #slide { width: 100%; height: calc(100vh - 90px); object-fit: contain; }
+    #slideFrame { position: relative; flex: none; }
+    #slideFrame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+    #slideFrame img.copy { opacity: 0.6; }
+    #slideshow .bar, #slideshow code {
+      position: relative; z-index: 1;  /* Above the copies. */
+      background: rgba(17, 17, 17, 0.8); padding: 2px 8px; border-radius: 4px;
+    }
     #slideshow .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                       justify-content: center; }
     kbd { border: 1px solid #888; border-radius: 3px; padding: 0 4px; font-size: 12px; }
@@ -127,7 +137,7 @@
   </div>
 
   <div id="slideshow" hidden>
-    <img id="slide" alt="Animated turtle-art picture">
+    <div id="slideFrame"></div>
     <div class="bar">
       <span id="slideInfo"></span>
       <button id="slideFav" title="Favorite (f)">☆</button>

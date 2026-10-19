@@ -384,9 +384,13 @@ const SLIDESHOW = {
 };
 const SLIDESHOW_HZ = 10;
 const SLIDESHOW_MIN_INTEREST = 0.95;
+// The picture's share of the screen height, leaving room around it for the
+// copies a wrapping turtle moves into.
+const SLIDESHOW_SCALE = 0.6;
 
 let slideTimer = null;
 let slidePicture = null;
+let slideUrl = null;
 
 // Tries random seeds until one is interesting enough. Most are not, but
 // each try takes well under a millisecond at this size.
@@ -405,13 +409,49 @@ function updateSlideFavorite() {
   $('slideFav').textContent = isFavorite(slidePicture) ? '★' : '☆';
 }
 
+// Sizes the slide frame to the picture's shape, SLIDESHOW_SCALE of the
+// screen height (or less, to fit the width).
+function sizeSlideFrame() {
+  if (!slidePicture) return;
+  const { bounds } = layoutFor(slidePicture);
+  const height = Math.min((innerHeight - 90) * SLIDESHOW_SCALE,
+                          ((innerWidth - 24) * SLIDESHOW_SCALE * bounds.height) / bounds.width);
+  $('slideFrame').style.height = `${height}px`;
+  $('slideFrame').style.width = `${(height * bounds.width) / bounds.height}px`;
+}
+
+// Shows the animated SVG at `url`, plus a copy at each wrap offset around
+// it, so a turtle leaving one side can be followed into the next copy. All
+// images share one URL, so the browser plays them in step. CSS translate
+// percentages are of the image's own size, hence offset / picture size.
+function showSlide(url) {
+  const { bounds, copies } = layoutFor(slidePicture);
+  const images = [];
+  for (let i = 0; i < copies.length; i += 2) {
+    const copy = new Image();
+    copy.className = 'copy';
+    copy.alt = '';
+    copy.src = url;
+    copy.style.transform = `translate(${(copies[i] / bounds.width) * 100}%, ` +
+                           `${(copies[i + 1] / bounds.height) * 100}%)`;
+    images.push(copy);
+  }
+  const picture = new Image();
+  picture.alt = 'Animated turtle-art picture';
+  picture.src = url;
+  images.push(picture);  // Last, so it is drawn above its copies.
+  $('slideFrame').replaceChildren(...images);
+  sizeSlideFrame();
+}
+
 function nextSlide() {
   clearTimeout(slideTimer);
   slidePicture = interestingSlidePicture();
   const svg = art.svg({ ...toArtSettings(slidePicture), hz: SLIDESHOW_HZ });
-  // A new image starts its animation from the beginning: a clear grid.
-  const old = $('slide').src;
-  $('slide').src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  // New images start their animation from the beginning: a clear grid.
+  const old = slideUrl;
+  slideUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  showSlide(slideUrl);
   if (old) URL.revokeObjectURL(old);
   $('slideInfo').textContent = `#${slidePicture.seed}`;
   $('slideCommand').textContent = `${commandOf(slidePicture)} --hz ${SLIDESHOW_HZ}`;
@@ -435,6 +475,7 @@ function favoriteSlide() {
 }
 
 $('slideshowButton').addEventListener('click', startSlideshow);
+window.addEventListener('resize', sizeSlideFrame);
 $('slideFav').addEventListener('click', favoriteSlide);
 $('slideNext').addEventListener('click', nextSlide);
 $('slideClose').addEventListener('click', stopSlideshow);
