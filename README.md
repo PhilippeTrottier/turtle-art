@@ -23,12 +23,14 @@ Procedural art made by a turtle walking on a grid of hexagons or squares.
 
 A turtle walks on a grid, paints its tiles, and turns according to a rule.
 The grid is a hexagon of hexagonal tiles (the default) or a rectangle of
-square tiles. The painted grid is written out as an SVG image,
-or browsed by the thousand in the [web explorer](#web-explorer).
+square tiles. The painted grid is written out as an SVG image (or, for
+square tiles, a PNG with one pixel per tile), or browsed by the thousand in
+the [web explorer](#web-explorer).
 
 ```
 turtle-art --seed 42 --edge wrap --history 1 --radius 15 --steps 15000 --out art.svg
 turtle-art --seed 47 --width 34 --height 21 --out golden.svg
+turtle-art --seed 47 --width 34 --height 21 --out golden.png
 turtle-art --seed 1 --radius 9 --steps 300 --history 2 --hz 10 --out animated.svg
 ```
 
@@ -120,7 +122,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
 | `--hz`     | Animate the SVG, replaying the walk at this many steps per second; 0 for a still picture | `0` |
-| `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
+| `--out`    | File to write: an SVG, or a PNG (one pixel per tile; rectangle grids, no `--hz`) when it ends with `.png` | `turtle-art.svg` |
 
 `--help` lists them too. Wrapping is the default edge because with
 `--edge stop` most turtles walk off the grid within a few dozen steps. Even
@@ -223,8 +225,9 @@ Using it:
   interest score (the color `Entropy`); pictures below the filter are
   skipped, which hides the many flat fills and tiny loops.
 - Click a picture (or press `Enter` for the first one) to view it large.
-  In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `c`
-  copy its `turtle-art` command, `Esc` close.
+  In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `p`
+  download a PNG with one pixel per tile (square tiles only), `c` copy its
+  `turtle-art` command, `Esc` close.
 - **▶ Hex screensaver** (`s`) fills the screen with animated art: a new
   picture every minute, drawn step by step at 10 steps per second from a
   clear grid. Each is a random seed with interest above 0.95, at fixed
@@ -298,7 +301,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 |-------------------|------------------------------------------------------------|
 | `tile.h`          | `Tile`: a tile's coordinates, `HexDistanceFromCenter`       |
 | `color.h`         | `Color`: unpainted plus up to 8 paints, `NextPaint`        |
-| `palette.h`       | `kPalette`: the CSS color of each `Color`                  |
+| `palette.h`       | `Rgb` and `kPalette`: the color of each `Color`; `CssColor` |
 | `grid.h`          | `EdgeMode`, `GridShape` and `Grid`: `Hexagon(radius)` or `Rectangle(width, height)`, `Tiles`, numbered directions, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
 | `layout.h`        | `TileCenter`, `TileOutline`, `PictureBounds`, `WrapCopyOffsets` and `WrapRingsToFill` (rings of wrap copies): where tiles and copies go in a picture |
 | `grid_stats.h`    | `ColorCounts` and `Entropy`: how interesting a grid is     |
@@ -307,12 +310,13 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
 | `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move), `PaintEvent` and `Walk` (with early stop on loops) |
 | `svg.h`           | `ToSvg`: a grid as an SVG string; `ToAnimatedSvg`: a walk replayed with SMIL |
-| `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
-| `main.cc`         | Command-line options, writes the SVG file                  |
+| `png.h`           | `ToPng`: a rectangle grid as PNG bytes, one pixel per tile  |
+| `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk), `MakeArt` (+ SVG) and `MakePng` (+ PNG) |
+| `main.cc`         | Command-line options, writes the SVG or PNG file           |
 
 `web/bindings.cc` is the web explorer's only C++: it exposes `RunArt` (as
-tile colors plus an interest score), `MakeArt`, the layout, the wrap copies
-and the palette to JavaScript.
+tile colors plus an interest score), `MakeArt`, `MakePng`, the layout, the
+wrap copies and the palette to JavaScript.
 
 ## Learning C++ with this code
 
@@ -327,14 +331,15 @@ file, then its test in `tests/`, which shows it in use.
 | `constexpr`, and `inline constexpr` variables in headers (C++17) | `color.h`, `rule_table.h`, `layout.cc` |
 | `std::array`, `std::vector`, `std::deque`, `std::map`, `std::set` | `grid.cc`, `rule_table.h`, `turtle.h`, `grid.h`, `layout.cc` |
 | `std::optional` for "maybe no value" instead of a sentinel | `grid.h` (`NeighborOf`) |
-| `std::string_view` (C++17) for read-only text | `palette.h` |
+| `std::string::ends_with` (C++20) | `main.cc` |
 | `std::format` (C++20) and `std::numbers::sqrt3` (C++20) | `svg.cc`, `layout.cc` |
 | Classes: private data, accessors, `const` methods, named constructors, member initializer lists | `grid.h` / `grid.cc` |
 | `explicit` constructors with default arguments | `turtle.h`, `rule_table.h` |
 | `std::move` to hand over objects instead of copying | `art.cc` |
 | Unnamed namespaces for file-local helpers | every `.cc`, e.g. `layout.cc` |
 | Preconditions with `assert`; no exceptions (Google style) | `grid.cc`, `rule_table.cc` |
-| RAII: a file closed by its destructor | `main.cc` |
+| RAII: a file closed by its destructor; binary file output with `std::ios::binary` and `reinterpret_cast` | `main.cc` |
+| Using a library from a package: lodepng, found with `find_package` | `png.cc`, `src/CMakeLists.txt` |
 | Portable randomness: `std::mt19937` without standard distributions | `random_rules.cc` |
 | Unit tests with GoogleTest, real objects instead of mocks | `tests/` |
 | Modern CMake: targets, an INTERFACE target for shared flags, generator expressions, presets | `CMakeLists.txt`, `CMakePresets.json` |
@@ -399,6 +404,7 @@ These are key; they take priority over cleverness and over features.
 | Packages         | vcpkg, manifest mode (`vcpkg.json`)                           |
 | Unit tests       | GoogleTest                                                    |
 | Command line     | CLI11                                                         |
+| PNG files        | lodepng                                                       |
 | Web explorer     | Emscripten 6.0.12 + Embind; plain HTML/JavaScript, no framework |
 | Scripts          | bash, plus Python 3's `http.server` to serve pages            |
 | Style            | [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) |
@@ -470,6 +476,16 @@ decisions go here too; there is no separate list of open questions.
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
   unpainted tiles are drawn, so the whole grid always shows.
+- **PNG:** only for square tiles, one pixel per tile, so the file is exact
+  and can be scaled up without blur in any image editor; hexagons have no
+  pixel-perfect form and stay SVG-only. It is a palette PNG at 4 bits per
+  pixel, since 9 colors fit in 16: measured 2.1 to 5.1 times smaller than
+  plain RGB on five pictures (e.g. 610 x 987: 1,536 bytes against 3,806),
+  so it is always used. Encoded by lodepng (one source file, in vcpkg)
+  rather than by hand: PNG needs zlib compression and CRCs.
+- **Output files are written in binary mode**, so an SVG has the same bytes
+  (LF line endings) on every platform, and a PNG is not corrupted by
+  Windows' newline translation.
 - **Interest score:** color entropy (`grid_stats.h`). It hides flat fills and
   tiny loops well, but cannot tell structure from noise, so it helps less
   with `--paint cycle`, where many seeds look like confetti.
@@ -510,7 +526,8 @@ every picture for every seed.
 2. **Enum and direction orders:** `Action` (its value is the random
    number), the direction offsets in `grid.cc` (counter-clockwise from east,
    so turning is ±1), `Color` (its value is the palette
-   index, the SVG class `cN` and the byte the explorer receives).
+   index, the SVG class `cN`, the PNG palette index and the byte the
+   explorer receives).
 3. **Tile order:** `Grid::Tiles()` order is the order of the colors
    `generate` and the centers `layout` return to `web/app.js`. All geometry
    lives in `layout.cc`; the page has none of its own.

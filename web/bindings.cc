@@ -113,6 +113,15 @@ std::string Svg(const turtle_art::ArtSettings& settings) {
   return turtle_art::MakeArt(settings);
 }
 
+// Returns the picture for `settings`, which must be a rectangle grid, as a
+// pixel-perfect PNG (one pixel per tile, see png.h) in a Uint8Array, for
+// downloading.
+val Png(const turtle_art::ArtSettings& settings) {
+  const std::vector<std::uint8_t> png = turtle_art::MakePng(settings);
+  return val::global("Uint8Array")
+      .new_(emscripten::typed_memory_view(png.size(), png.data()));
+}
+
 // Returns the palette as a JavaScript array of CSS colors, indexed by Color.
 val Palette() {
   val colors = val::array();
@@ -154,5 +163,6 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
   emscripten::function("wrapCopies", &WrapCopies);
   emscripten::function("wrapRingsToFill", &WrapRingsToFill);
   emscripten::function("svg", &Svg);
+  emscripten::function("png", &Png);
   emscripten::function("palette", &Palette);
 }
