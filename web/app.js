@@ -8,7 +8,8 @@
 // pictures never freeze the page; this thread only draws them.
 //
 // Sections, in order: settings (mirrored in the URL), favorites, drawing,
-// the grid of thumbnails, the large viewer, the hex screensaver, keys.
+// the grid of thumbnails, the large viewer, the hex screensaver, the carpet,
+// keys.
 
 import createTurtleArt from './turtle_art.js';
 import { FIBONACCI, commandOf, shapeOf, sizeOf,
@@ -142,17 +143,7 @@ function draw(canvas, p, colors, width) {
 // That stays fast at any size; filling a path of 600,000 squares (610 rows)
 // froze the page.
 function drawSquares(canvas, size, colors, width) {
-  const pixels = new ImageData(size.width, size.height);
-  const data = pixels.data;  // 4 bytes per pixel: red, green, blue, alpha.
-  for (let i = 0; i < colors.length; i++) {
-    const [red, green, blue] = PALETTE_RGB[colors[i]];
-    data[4 * i] = red;
-    data[4 * i + 1] = green;
-    data[4 * i + 2] = blue;
-    data[4 * i + 3] = 255;
-  }
-  const image = new OffscreenCanvas(size.width, size.height);
-  image.getContext('2d').putImageData(pixels, 0, 0);
+  const image = pixelImage(size, colors, PALETTE_RGB);
   canvas.width = Math.round(width * devicePixelRatio);
   canvas.height = Math.round(canvas.width * size.height / size.width);
   const ctx = canvas.getContext('2d');
@@ -160,6 +151,23 @@ function drawSquares(canvas, size, colors, width) {
   // looks better than dropping most of them.
   ctx.imageSmoothingEnabled = canvas.width < size.width;
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+}
+
+// Returns an image of `size` (a picture's columns and rows) with one pixel
+// per tile, colored by `palette` ([red, green, blue] per Color value).
+function pixelImage(size, colors, palette) {
+  const pixels = new ImageData(size.width, size.height);
+  const data = pixels.data;  // 4 bytes per pixel: red, green, blue, alpha.
+  for (let i = 0; i < colors.length; i++) {
+    const [red, green, blue] = palette[colors[i]];
+    data[4 * i] = red;
+    data[4 * i + 1] = green;
+    data[4 * i + 2] = blue;
+    data[4 * i + 3] = 255;
+  }
+  const image = new OffscreenCanvas(size.width, size.height);
+  image.getContext('2d').putImageData(pixels, 0, 0);
+  return image;
 }
 
 // Hexagons are drawn from the layout's tile outlines. Tiles of one color go
@@ -572,8 +580,148 @@ $('saverHud').addEventListener('click', toggleSaverHud);
 // Clicking the art toggles the HUD too, so it can come back without keys.
 $('saverFrame').addEventListener('click', toggleSaverHud);
 
+// ---- Carpet: a still picture tiled over the screen, a new one every 10 s --
+//
+// Pictures come from a second worker (the first one serves the thumbnails),
+// which tries random seeds until one is interesting enough. While one picture
+// shows, the worker already looks for the next, so the swap is instant.
+// Each picture fades in from black, stays, and fades back to black.
+
+// A full picture, like SCREENSAVER.
+const CARPET = {
+  shape: 'golden', radius: 15, rows: 89, edge: 'wrap', paint: 'turtle',
+  colors: 4, history: 2, steps: 155000,
+};
+const CARPET_MIN_INTEREST = 1.0;
+const CARPET_PERIOD_MS = 10000;  // Per picture, fades included.
+const CARPET_FADE_MS = 1000;     // As #carpetArt's transition in index.html.
+const CARPET_PIXELS_PER_TILE = 2;
+// The palette with black for unpainted tiles, which suits a dark carpet.
+const CARPET_RGB = [[0, 0, 0], ...PALETTE_RGB.slice(1)];
+
+const carpetWorker = new Worker(new URL('./worker.js', import.meta.url),
+                                { type: 'module' });
+let carpetRun = 0;        // Bumped on stop, so late answers are dropped.
+let carpetPicture = null; // The picture showing.
+let carpetUrl = null;     // Its image, as an object URL.
+let carpetNext = null;    // {picture, url}: found, waiting to be shown.
+let carpetWaiting = false;  // The screen is black, waiting for carpetNext.
+let carpetTimer = null;
+
+function findCarpetPicture() {
+  const seed = Math.floor(Math.random() * 0x100000000);
+  carpetWorker.postMessage({ run: carpetRun, picture: { ...CARPET, seed } });
+}
+
+carpetWorker.onmessage = async ({ data }) => {
+  if (data.run !== carpetRun) return;
+  if (data.entropy < CARPET_MIN_INTEREST) {
+    findCarpetPicture();
+    return;
+  }
+  const image = pixelImage(sizeOf(data.picture), data.colors, CARPET_RGB);
+  const url = URL.createObjectURL(await image.convertToBlob());
+  if (data.run !== carpetRun) {  // Stopped while the image was encoded.
+    URL.revokeObjectURL(url);
+    return;
+  }
+  carpetNext = { picture: data.picture, url };
+  if (carpetWaiting) showNextCarpet();
+};
+
+// Sizes the repeated image so each tile is CARPET_PIXELS_PER_TILE screen
+// pixels square. CSS pixels are devicePixelRatio screen pixels each.
+function sizeCarpet() {
+  if (!carpetPicture) return;
+  const { width, height } = sizeOf(carpetPicture);
+  const scale = CARPET_PIXELS_PER_TILE / devicePixelRatio;
+  $('carpetArt').style.backgroundSize = `${width * scale}px ${height * scale}px`;
+}
+
+function updateCarpetFavorite() {
+  $('carpetFav').textContent = isFavorite(carpetPicture) ? '★' : '☆';
+}
+
+// Fades in the picture found last, and starts looking for the next one.
+function showNextCarpet() {
+  carpetWaiting = false;
+  const old = carpetUrl;
+  ({ picture: carpetPicture, url: carpetUrl } = carpetNext);
+  carpetNext = null;
+  $('carpetArt').style.backgroundImage = `url(${carpetUrl})`;
+  sizeCarpet();
+  $('carpetArt').classList.add('shown');
+  if (old) URL.revokeObjectURL(old);
+  $('carpetInfo').textContent = `#${carpetPicture.seed}`;
+  $('carpetCommand').textContent = commandOf(carpetPicture);
+  updateCarpetFavorite();
+  findCarpetPicture();
+  carpetTimer = setTimeout(hideCarpet, CARPET_PERIOD_MS - CARPET_FADE_MS);
+}
+
+// Fades to black, then shows the next picture, or waits for it.
+function hideCarpet() {
+  clearTimeout(carpetTimer);
+  $('carpetArt').classList.remove('shown');
+  carpetTimer = setTimeout(() => {
+    if (carpetNext) showNextCarpet();
+    else carpetWaiting = true;
+  }, CARPET_FADE_MS);
+}
+
+function startCarpet() {
+  $('carpet').hidden = false;
+  $('carpetInfo').textContent = 'finding a picture…';
+  carpetWaiting = true;
+  findCarpetPicture();
+}
+
+function stopCarpet() {
+  clearTimeout(carpetTimer);
+  carpetRun++;
+  carpetWaiting = false;
+  if (carpetNext) URL.revokeObjectURL(carpetNext.url);
+  carpetNext = null;
+  $('carpetArt').classList.remove('shown');
+  $('carpet').hidden = true;
+}
+
+// Skips to the next picture, unless already between pictures.
+function nextCarpet() {
+  if ($('carpetArt').classList.contains('shown')) hideCarpet();
+}
+
+function favoriteCarpetPicture() {
+  if (!carpetPicture) return;
+  toggleFavorite(carpetPicture);
+  updateCarpetFavorite();
+}
+
+function toggleCarpetHud() {
+  $('carpet').classList.toggle('no-hud');
+}
+
+$('carpetButton').addEventListener('click', startCarpet);
+window.addEventListener('resize', sizeCarpet);  // Also on zoom: new ratio.
+$('carpetFav').addEventListener('click', favoriteCarpetPicture);
+$('carpetNext').addEventListener('click', nextCarpet);
+$('carpetClose').addEventListener('click', stopCarpet);
+$('carpetHud').addEventListener('click', toggleCarpetHud);
+$('carpetArt').addEventListener('click', toggleCarpetHud);
+
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (!$('carpet').hidden) {
+    const carpetActions = {
+      Escape: stopCarpet, f: favoriteCarpetPicture, n: nextCarpet,
+      h: toggleCarpetHud,
+    };
+    if (carpetActions[e.key]) {
+      e.preventDefault();
+      carpetActions[e.key]();
+    }
+    return;
+  }
   if (!$('screensaver').hidden) {
     const saverActions = {
       Escape: stopScreensaver, f: favoriteSaverPicture, n: nextSaverPicture,
@@ -589,6 +737,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'g') toggleFavoritesView();
     if (e.key === 'r') randomStart();
     if (e.key === 's') startScreensaver();
+    if (e.key === 'c') startCarpet();
     // Enter opens the first picture, to browse with the keyboard alone.
     if (e.key === 'Enter' && items.length > 0) openViewer(0);
     return;

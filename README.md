@@ -250,13 +250,20 @@ Using it:
   copy. The copies are only for show: clipped at the screen's edges, never
   scrolled. `h` (or a click on the art) hides the HUD, `n` skips to the next
   picture, `f` favorites the current one, `Esc` exits.
+- **▦ Carpet** (`c`) tiles a still picture over the whole window, a new one
+  every 10 seconds, fading through black (1 second out, 1 second in). Each
+  is a random seed with interest of at least 1.0, at fixed settings (golden
+  rectangle of 89 rows, 155,000 steps, 4 colors, history 2, wrap, turtle).
+  Every tile is exactly 2 x 2 screen pixels, unsmoothed, like a PNG 2×, and
+  unpainted tiles are black instead of cream. Same keys as the screensaver.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
 
 How the page works: the C++ module (`web/bindings.cc`) is loaded twice.
 `worker.js` runs one copy on a background thread (a Web Worker) and
-generates every thumbnail and favorite: each picture's tile colors and
+generates every thumbnail and favorite (the carpet starts a second worker
+for its own pictures, so the two never wait on each other): each picture's tile colors and
 interest score (`generate`). `app.js` runs on the page with the other copy,
 for what is quick or asked for: where tiles go (`layout`), SVGs for
 downloads and the screensaver (`svg`), and the screensaver's seed search.
@@ -266,7 +273,7 @@ drawn as one pixel per tile, scaled by the canvas, because a path of
 600,000 squares (610 rows) froze the page. `pictures.js`, shared by both, says what a picture is (a seed
 plus the knobs) and turns it into C++ settings. `app.js`'s sections, in
 order: settings (mirrored in the URL), favorites, drawing, the grid of
-thumbnails, the large viewer, the hex screensaver, keys.
+thumbnails, the large viewer, the hex screensaver, the carpet, keys.
 
 The page itself (`index.html`, `app.js`) is not unit tested; keep it small.
 Everything that decides what a picture looks like stays in C++.

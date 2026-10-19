@@ -79,6 +79,30 @@
                       justify-content: center; }
     /* HUD off: only the art. */
     #screensaver.no-hud .bar, #screensaver.no-hud code { display: none; }
+    #carpet {
+      z-index: 2;
+      position: fixed; inset: 0; background: #000; color: #eee;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-end; gap: 8px; padding: 12px;
+      overflow: clip;  /* Never scrolls, see #screensaver. */
+    }
+    #carpet[hidden] { display: none; }
+    /* The picture, repeated over the whole window. `pixelated` enlarges each
+       tile into a crisp square instead of blurring it. It fades through
+       black (#carpet's background) between pictures. */
+    #carpetArt {
+      position: absolute; inset: 0; background-repeat: repeat;
+      image-rendering: pixelated; opacity: 0; transition: opacity 1s;
+    }
+    #carpetArt.shown { opacity: 1; }
+    #carpet .bar, #carpet code {
+      position: relative;  /* Above the art. */
+      background: rgba(0, 0, 0, 0.8); padding: 2px 8px; border-radius: 4px;
+    }
+    #carpet .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+                   justify-content: center; }
+    #carpet code { color: #ccc; }
+    #carpet.no-hud .bar, #carpet.no-hud code { display: none; }
     kbd { border: 1px solid #888; border-radius: 3px; padding: 0 4px; font-size: 12px; }
   </style>
 </head>
@@ -114,8 +138,9 @@
     <label>size <input id="thumb" type="range" min="80" max="400" step="10"></label>
     <button id="favoritesButton" title="Show favorites (g)">★ Favorites</button>
     <button id="screensaverButton" title="Hex screensaver: a new animated picture every minute, filling the screen (s)">▶ Hex screensaver</button>
+    <button id="carpetButton" title="Carpet: a still golden rectangle tiled over the screen, a new one every 10 seconds (c)">▦ Carpet</button>
     <button id="copyFavorites" hidden title="Copy every favorite as a turtle-art command">Copy as commands</button>
-    <span id="status" title="Keys: r random start · g favorites · s screensaver · Enter open first picture"></span>
+    <span id="status" title="Keys: r random start · g favorites · s screensaver · c carpet · Enter open first picture"></span>
   </header>
   <main id="grid"></main>
   <div id="empty" hidden>No favorites yet. Click ☆ on a picture, or press <kbd>f</kbd> in the viewer.</div>
@@ -152,6 +177,18 @@
       <button id="saverClose" title="Close (Esc)">✕</button>
     </div>
     <code id="saverCommand"></code>
+  </div>
+
+  <div id="carpet" hidden>
+    <div id="carpetArt"></div>
+    <div class="bar">
+      <span id="carpetInfo"></span>
+      <button id="carpetFav" title="Favorite (f)">☆</button>
+      <button id="carpetNext" title="Next picture now (n)">⏭</button>
+      <button id="carpetHud" title="Hide this bar; press h or click the art to bring it back">Hide HUD (h)</button>
+      <button id="carpetClose" title="Close (Esc)">✕</button>
+    </div>
+    <code id="carpetCommand"></code>
   </div>
 
   <script type="module" src="app.js"></script>
