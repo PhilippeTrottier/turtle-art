@@ -12,7 +12,7 @@ namespace turtle_art {
 namespace {
 
 TEST(SvgTest, SingleUnpaintedTile) {
-  const Grid grid(0);
+  const Grid grid = Grid::Hexagon(0);
   EXPECT_EQ(ToSvg(grid),
             "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"17.32\" "
             "height=\"20.00\" viewBox=\"-8.66 -10.00 17.32 20.00\">\n"
@@ -35,18 +35,18 @@ TEST(SvgTest, SingleUnpaintedTile) {
 }
 
 TEST(SvgTest, PaintedTileUsesItsColorClass) {
-  Grid grid(0);
+  Grid grid = Grid::Hexagon(0);
   grid.Paint(Tile{}, Color::kPaint3);
   EXPECT_NE(ToSvg(grid).find("class=\"c3\""), std::string::npos);
 }
 
 TEST(SvgTest, TileEastOfCenterIsDrawnOneTileWidthRight) {
-  const Grid grid(1);
+  const Grid grid = Grid::Hexagon(1);
   EXPECT_NE(ToSvg(grid).find("x=\"17.32\" y=\"0.00\""), std::string::npos);
 }
 
 TEST(SvgTest, TileSouthEastOfCenterIsDrawnBelowAndHalfRight) {
-  const Grid grid(1);
+  const Grid grid = Grid::Hexagon(1);
   EXPECT_NE(ToSvg(grid).find("x=\"8.66\" y=\"15.00\""), std::string::npos);
 }
 

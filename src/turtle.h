@@ -4,7 +4,6 @@
 #include <deque>
 
 #include "color.h"
-#include "direction.h"
 #include "grid.h"
 #include "rule_table.h"
 #include "tile.h"
@@ -35,8 +34,9 @@ class Turtle {
   // Returns the tile the turtle stands on.
   Tile position() const { return position_; }
 
-  // Returns the direction the turtle will move in.
-  Direction heading() const { return heading_; }
+  // Returns the direction the turtle will move in, as a number of left turns
+  // from east (see Grid).
+  int heading() const { return heading_; }
 
   // Returns the color the turtle paints with.
   Color color() const { return color_; }
@@ -55,7 +55,7 @@ class Turtle {
  private:
   PaintMode paint_mode_;
   Tile position_;
-  Direction heading_ = Direction::kEast;
+  int heading_ = 0;  // East.
   Color color_ = Color::kPaint1;
   // The tiles visited before the current one, oldest first; at most
   // history length - 1 of them. std::deque is a sequence with fast insertion

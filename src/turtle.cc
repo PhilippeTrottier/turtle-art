@@ -6,7 +6,6 @@
 
 #include "action.h"
 #include "color.h"
-#include "direction.h"
 #include "grid.h"
 #include "rule_table.h"
 #include "tile.h"
@@ -28,11 +27,15 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
   switch (rules.ActionFor(sensed)) {
     case Action::kKeep:
       break;
+    // Headings count left turns, so turning adds or subtracts one, modulo
+    // the grid's number of directions. Adding the count before % keeps the
+    // result non-negative: in C++, -1 % 6 is -1, not 5.
     case Action::kTurnLeft:
-      heading_ = TurnLeft(heading_);
+      heading_ = (heading_ + 1) % grid.direction_count();
       break;
     case Action::kTurnRight:
-      heading_ = TurnRight(heading_);
+      heading_ =
+          (heading_ - 1 + grid.direction_count()) % grid.direction_count();
       break;
     case Action::kChangeColor:
       color_ = NextPaint(color_, rules.paint_count());

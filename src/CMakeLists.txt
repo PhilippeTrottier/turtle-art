@@ -2,7 +2,6 @@
 add_library(turtle_art_lib
   art.cc
   color.cc
-  direction.cc
   grid.cc
   grid_stats.cc
   random_rules.cc
@@ -12,7 +11,7 @@ add_library(turtle_art_lib
   turtle.cc)
 
 # PUBLIC: targets linking turtle_art_lib also get this include path, so they
-# can write #include "direction.h".
+# can write #include "grid.h".
 target_include_directories(turtle_art_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(turtle_art_lib PUBLIC turtle_art_options)
 

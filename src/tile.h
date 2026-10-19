@@ -4,13 +4,14 @@
 #include <compare>  // Needed by operator<=>.
 #include <ostream>
 
-#include "direction.h"
-
 namespace turtle_art {
 
-// A tile of the hex grid, in axial coordinates: `q` grows to the east, `r`
-// grows to the south-east, and the center tile is {0, 0}. See
-// https://www.redblobgames.com/grids/hexagons/#coordinates-axial
+// A tile of a grid, with the center tile at {0, 0}. What q and r mean
+// depends on the grid's shape (see Grid):
+// - hexagon: axial coordinates; q grows to the east, r to the south-east.
+//   See https://www.redblobgames.com/grids/hexagons/#coordinates-axial
+// - rectangle (square tiles): q is the column (growing east), r the row
+//   (growing south).
 //
 // A plain struct (public data, no invariants) is the Google-style choice for
 // a passive value like this.
@@ -24,15 +25,13 @@ struct Tile {
   friend auto operator<=>(const Tile&, const Tile&) = default;
 };
 
-// Returns the tile next to `hex` in `direction`.
-Tile Neighbor(Tile hex, Direction direction);
+// Returns how many steps separate `tile`, in axial hex coordinates, from the
+// center tile {0, 0} of a hexagon grid.
+int HexDistanceFromCenter(Tile tile);
 
-// Returns how many steps separate `hex` from the center tile {0, 0}.
-int DistanceFromCenter(Tile hex);
-
-// Writes `hex` as "{q, r}". GoogleTest uses this to print values in failed
+// Writes `tile` as "{q, r}". GoogleTest uses this to print values in failed
 // assertions.
-std::ostream& operator<<(std::ostream& out, Tile hex);
+std::ostream& operator<<(std::ostream& out, Tile tile);
 
 }  // namespace turtle_art
 

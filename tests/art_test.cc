@@ -20,7 +20,8 @@ TEST(ArtTest, DifferentSeedsGiveDifferentImages) {
 }
 
 TEST(ArtTest, ZeroStepsGiveUnpaintedGrid) {
-  EXPECT_EQ(MakeArt({.seed = 3, .steps = 0, .radius = 2}), ToSvg(Grid(2)));
+  EXPECT_EQ(MakeArt({.seed = 3, .steps = 0, .radius = 2}),
+            ToSvg(Grid::Hexagon(2)));
 }
 
 TEST(ArtTest, EdgeModeChangesTheImage) {

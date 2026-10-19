@@ -12,12 +12,12 @@ namespace turtle_art {
 namespace {
 
 TEST(GridStatsTest, UnpaintedGridCountsEveryTileAsUnpainted) {
-  const Grid grid(1);
+  const Grid grid = Grid::Hexagon(1);
   EXPECT_EQ(ColorCounts(grid), (std::vector<int>{7, 0, 0, 0, 0, 0, 0, 0, 0}));
 }
 
 TEST(GridStatsTest, PaintedTilesAreCountedByColor) {
-  Grid grid(1);
+  Grid grid = Grid::Hexagon(1);
   grid.Paint(Tile{}, Color::kPaint2);
   grid.Paint(Tile{.q = 1, .r = 0}, Color::kPaint2);
   grid.Paint(Tile{.q = -1, .r = 0}, Color::kPaint8);
