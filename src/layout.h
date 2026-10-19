@@ -36,6 +36,11 @@ std::vector<Point> TileOutline(const Grid& grid);
 // Returns the smallest box holding every tile of `grid`.
 Box PictureBounds(const Grid& grid);
 
+// Returns where copies of the picture go around it, as offsets from the
+// picture itself, so that a turtle wrapping off one side can be followed
+// into the next copy (see Grid::WrapCopyCenters).
+std::vector<Point> WrapCopyOffsets(const Grid& grid);
+
 }  // namespace turtle_art
 
 #endif  // TURTLE_ART_SRC_LAYOUT_H_

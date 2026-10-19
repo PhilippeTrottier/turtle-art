@@ -188,5 +188,24 @@ TEST(GridTest, RectangleWrapsNorthToTheLastRow) {
             (Tile{.q = 0, .r = 1}));
 }
 
+TEST(GridTest, HexagonHasSixCopiesAround) {
+  EXPECT_EQ(Grid::Hexagon(2).WrapCopyCenters().size(), 6U);
+}
+
+// For radius R, the first copy is centered 2R + 1 tiles east and R rows up.
+TEST(GridTest, HexagonFirstCopyIsAtTheMirrorCenter) {
+  EXPECT_EQ(Grid::Hexagon(2).WrapCopyCenters().front(),
+            (Tile{.q = 5, .r = -2}));
+}
+
+TEST(GridTest, RectangleHasEightCopiesAround) {
+  EXPECT_EQ(Grid::Rectangle(4, 3).WrapCopyCenters().size(), 8U);
+}
+
+TEST(GridTest, RectangleFirstCopyIsOneWidthEast) {
+  EXPECT_EQ(Grid::Rectangle(4, 3).WrapCopyCenters().front(),
+            (Tile{.q = 4, .r = 0}));
+}
+
 }  // namespace
 }  // namespace turtle_art

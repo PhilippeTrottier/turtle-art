@@ -114,25 +114,39 @@ std::optional<Tile> Grid::NeighborOf(Tile tile, int heading) const {
   return std::nullopt;
 }
 
+std::vector<Tile> Grid::WrapCopyCenters() const {
+  if (shape_ == GridShape::kRectangle) {
+    return {{.q = width_, .r = 0},   {.q = width_, .r = -height_},
+            {.q = 0, .r = -height_}, {.q = -width_, .r = -height_},
+            {.q = -width_, .r = 0},  {.q = -width_, .r = height_},
+            {.q = 0, .r = height_},  {.q = width_, .r = height_}};
+  }
+  // Copies of the hexagon tile the whole plane when centered on "mirror
+  // centers". The nearest six are rotations of {2R + 1, -R}. See
+  // https://www.redblobgames.com/grids/hexagons/#wraparound
+  std::vector<Tile> centers;
+  Tile mirror = {.q = (2 * radius_) + 1, .r = -radius_};
+  for (int i = 0; i < 6; ++i) {
+    centers.push_back(mirror);
+    // Rotates `mirror` 60 degrees around the center.
+    mirror = {.q = mirror.q + mirror.r, .r = -mirror.q};
+  }
+  return centers;
+}
+
 Tile Grid::Wrap(Tile tile) const {
   if (shape_ == GridShape::kRectangle) {
     // A rectangle wraps like a torus: columns and rows modulo the size.
     return {.q = min_q() + PositiveModulo(tile.q - min_q(), width_),
             .r = min_r() + PositiveModulo(tile.r - min_r(), height_)};
   }
-  // Copies of the hexagon tile the whole plane when centered on "mirror
-  // centers". The nearest six are rotations of {2R + 1, -R}. A tile just
-  // outside the grid lies inside one of those copies; subtracting that
-  // copy's center gives the matching tile of the grid itself. See
-  // https://www.redblobgames.com/grids/hexagons/#wraparound
-  Tile mirror = {.q = (2 * radius_) + 1, .r = -radius_};
-  for (int i = 0; i < 6; ++i) {
-    const Tile candidate = {.q = tile.q - mirror.q, .r = tile.r - mirror.r};
+  // A tile just outside the hexagon lies inside one of the copies next to
+  // it; subtracting that copy's center gives the matching tile of the grid.
+  for (const Tile copy : WrapCopyCenters()) {
+    const Tile candidate = {.q = tile.q - copy.q, .r = tile.r - copy.r};
     if (Contains(candidate)) {
       return candidate;
     }
-    // Rotates `mirror` 60 degrees around the center.
-    mirror = {.q = mirror.q + mirror.r, .r = -mirror.q};
   }
   assert(false && "Wrap() needs a tile just outside the grid");
   return tile;

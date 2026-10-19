@@ -89,6 +89,14 @@ class Grid {  // NOLINT(bugprone-exception-escape)
   // tile) with EdgeMode::kStop.
   std::optional<Tile> NeighborOf(Tile tile, int heading) const;
 
+  // Returns where the copies next to this grid are centered, as offsets
+  // from its center tile: copies placed there (and at their own copies'
+  // offsets) tile the whole plane, which is what makes wrapping seamless. A
+  // turtle leaving the grid enters one of these copies, which is the same as
+  // re-entering the grid on the opposite side. 6 for a hexagon (its "mirror
+  // centers"), 8 for a rectangle (its sides and corners).
+  std::vector<Tile> WrapCopyCenters() const;
+
   // Returns the color of `tile`, which must be a tile of this grid.
   Color ColorAt(Tile tile) const;
 

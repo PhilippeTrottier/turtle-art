@@ -49,6 +49,16 @@ std::vector<Point> TileOutline(const Grid& grid) {
           {.x = 0.0, .y = -kHexSize}};
 }
 
+std::vector<Point> WrapCopyOffsets(const Grid& grid) {
+  std::vector<Point> offsets;
+  // The center tile is at {0, 0}, so a copy centered on a tile is offset by
+  // that tile's position.
+  for (const Tile center : grid.WrapCopyCenters()) {
+    offsets.push_back(TileCenter(grid, center));
+  }
+  return offsets;
+}
+
 Box PictureBounds(const Grid& grid) {
   if (grid.shape() == GridShape::kRectangle) {
     // The top-left tile's center, minus half a tile.

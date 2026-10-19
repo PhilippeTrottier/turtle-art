@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "grid.h"
 #include "tile.h"
 
@@ -49,6 +51,20 @@ TEST(LayoutTest, HexagonBoundsAreCenteredOnTheOrigin) {
   EXPECT_DOUBLE_EQ(bounds.y, -10.0);
   EXPECT_NEAR(bounds.width, 17.32, 0.01);
   EXPECT_DOUBLE_EQ(bounds.height, 20.0);
+}
+
+TEST(LayoutTest, HexagonCopiesSitAroundThePicture) {
+  // Radius 0: the first copy is the tile east of the center.
+  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Hexagon(0));
+  EXPECT_EQ(offsets.size(), 6U);
+  EXPECT_NEAR(offsets.front().x, 17.32, 0.01);
+  EXPECT_DOUBLE_EQ(offsets.front().y, 0.0);
+}
+
+TEST(LayoutTest, RectangleCopyIsOnePictureWidthAway) {
+  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Rectangle(4, 3));
+  EXPECT_DOUBLE_EQ(offsets.front().x, 40.0);
+  EXPECT_DOUBLE_EQ(offsets.front().y, 0.0);
 }
 
 }  // namespace
