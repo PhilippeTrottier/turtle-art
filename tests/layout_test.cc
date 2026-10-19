@@ -55,16 +55,45 @@ TEST(LayoutTest, HexagonBoundsAreCenteredOnTheOrigin) {
 
 TEST(LayoutTest, HexagonCopiesSitAroundThePicture) {
   // Radius 0: the first copy is the tile east of the center.
-  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Hexagon(0));
+  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Hexagon(0), 1);
   EXPECT_EQ(offsets.size(), 6U);
   EXPECT_NEAR(offsets.front().x, 17.32, 0.01);
   EXPECT_DOUBLE_EQ(offsets.front().y, 0.0);
 }
 
 TEST(LayoutTest, RectangleCopyIsOnePictureWidthAway) {
-  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Rectangle(4, 3));
+  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Rectangle(4, 3), 1);
   EXPECT_DOUBLE_EQ(offsets.front().x, 40.0);
   EXPECT_DOUBLE_EQ(offsets.front().y, 0.0);
+}
+
+TEST(LayoutTest, HexagonSecondRingAddsTwelveCopies) {
+  EXPECT_EQ(WrapCopyOffsets(Grid::Hexagon(3), 2).size(), 18U);
+}
+
+TEST(LayoutTest, RectangleSecondRingAddsSixteenCopies) {
+  EXPECT_EQ(WrapCopyOffsets(Grid::Rectangle(4, 3), 2).size(), 24U);
+}
+
+TEST(LayoutTest, SecondRingStartsTwoCopiesAway) {
+  // A 4 x 3 rectangle: ring 1 is 8 copies, then ring 2 starts two widths east.
+  const std::vector<Point> offsets = WrapCopyOffsets(Grid::Rectangle(4, 3), 2);
+  EXPECT_DOUBLE_EQ(offsets[8].x, 80.0);
+  EXPECT_DOUBLE_EQ(offsets[8].y, 0.0);
+}
+
+TEST(LayoutTest, ScreenTheSizeOfThePictureNeedsOneRing) {
+  const Grid grid = Grid::Hexagon(9);
+  const Box bounds = PictureBounds(grid);
+  EXPECT_EQ(WrapRingsToFill(grid, bounds.width, bounds.height), 1);
+}
+
+TEST(LayoutTest, WiderScreenNeedsMoreRings) {
+  // Radius 9 copies sit about 285 units apart; a 4:3 screen about 2.5
+  // pictures high needs 2 rings, an ultrawide one 3.
+  const Grid grid = Grid::Hexagon(9);
+  EXPECT_EQ(WrapRingsToFill(grid, 730, 547), 2);
+  EXPECT_EQ(WrapRingsToFill(grid, 1232, 516), 3);
 }
 
 }  // namespace

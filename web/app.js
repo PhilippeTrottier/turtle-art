@@ -384,8 +384,9 @@ const SLIDESHOW = {
 };
 const SLIDESHOW_HZ = 10;
 const SLIDESHOW_MIN_INTEREST = 0.95;
-// The picture's share of the screen height, leaving room around it for the
-// copies a wrapping turtle moves into.
+// The picture's share of the screen height. Copies of it surround it, as
+// many rings as it takes to fill the screen edge to edge (2 on most
+// screens, 3 on ultrawide ones).
 const SLIDESHOW_SCALE = 0.6;
 
 let slideTimer = null;
@@ -411,25 +412,32 @@ function updateSlideFavorite() {
 
 // Sizes the slide frame to the picture's shape, SLIDESHOW_SCALE of the
 // screen height (or less, to fit the width).
+// Returns the frame's height in pixels.
 function sizeSlideFrame() {
-  if (!slidePicture) return;
   const { bounds } = layoutFor(slidePicture);
   const height = Math.min((innerHeight - 90) * SLIDESHOW_SCALE,
                           ((innerWidth - 24) * SLIDESHOW_SCALE * bounds.height) / bounds.width);
   $('slideFrame').style.height = `${height}px`;
   $('slideFrame').style.width = `${(height * bounds.width) / bounds.height}px`;
+  return height;
 }
 
-// Shows the animated SVG at `url`, plus a copy at each wrap offset around
-// it, so a turtle leaving one side can be followed into the next copy. All
-// images share one URL, so the browser plays them in step. CSS translate
-// percentages are of the image's own size, hence offset / picture size.
+// Shows the animated SVG at `url`, plus copies of it around, so a turtle
+// leaving one side can be followed into the next copy, and the art fills
+// the screen. All images share one URL, so the browser plays them in step.
+// CSS translate percentages are of the image's own size, hence offset /
+// picture size.
 function showSlide(url) {
-  const { bounds, copies } = layoutFor(slidePicture);
+  const { bounds } = layoutFor(slidePicture);
+  const settings = toArtSettings(slidePicture);
+  // The screen's size in picture units, for as many rings as fill it.
+  const unitsPerPixel = bounds.height / sizeSlideFrame();
+  const rings = art.wrapRingsToFill(settings, innerWidth * unitsPerPixel,
+                                    innerHeight * unitsPerPixel);
+  const copies = art.wrapCopies(settings, rings);
   const images = [];
   for (let i = 0; i < copies.length; i += 2) {
     const copy = new Image();
-    copy.className = 'copy';
     copy.alt = '';
     copy.src = url;
     copy.style.transform = `translate(${(copies[i] / bounds.width) * 100}%, ` +
@@ -441,7 +449,6 @@ function showSlide(url) {
   picture.src = url;
   images.push(picture);  // Last, so it is drawn above its copies.
   $('slideFrame').replaceChildren(...images);
-  sizeSlideFrame();
 }
 
 function nextSlide() {
@@ -475,7 +482,11 @@ function favoriteSlide() {
 }
 
 $('slideshowButton').addEventListener('click', startSlideshow);
-window.addEventListener('resize', sizeSlideFrame);
+// A new size may need more rings. The images reuse the same URL, so the
+// animation carries on where it was.
+window.addEventListener('resize', () => {
+  if (!$('slideshow').hidden) showSlide(slideUrl);
+});
 $('slideFav').addEventListener('click', favoriteSlide);
 $('slideNext').addEventListener('click', nextSlide);
 $('slideClose').addEventListener('click', stopSlideshow);

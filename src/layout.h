@@ -38,8 +38,16 @@ Box PictureBounds(const Grid& grid);
 
 // Returns where copies of the picture go around it, as offsets from the
 // picture itself, so that a turtle wrapping off one side can be followed
-// into the next copy (see Grid::WrapCopyCenters).
-std::vector<Point> WrapCopyOffsets(const Grid& grid);
+// into the next copy (see Grid::WrapCopyCenters). `rings` is how many rings
+// of copies, at least 1: ring 1 touches the picture (6 copies for a
+// hexagon, 8 for a rectangle), ring 2 surrounds ring 1, and so on. Offsets
+// are listed ring by ring, nearest first.
+std::vector<Point> WrapCopyOffsets(const Grid& grid, int rings);
+
+// Returns how many rings of copies it takes to fill a screen `width` x
+// `height` (in picture units) centered on the picture, at least 1. It errs
+// on the side of one ring too many rather than leaving a gap.
+int WrapRingsToFill(const Grid& grid, double width, double height);
 
 }  // namespace turtle_art
 
