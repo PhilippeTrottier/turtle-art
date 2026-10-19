@@ -76,7 +76,7 @@ function toArtSettings(p) {
            shape: hexagon ? art.GridShape.hexagon : art.GridShape.rectangle,
            radius: p.radius, width, height, edgeMode: art.EdgeMode[p.edge],
            paintMode: art.PaintMode[paintOf(p)], paintCount: p.colors,
-           historyLength: p.history };
+           historyLength: p.history, hz: 0 };
 }
 
 function commandOf(p) {
@@ -371,11 +371,88 @@ $('viewer').addEventListener('click', (e) => {
   if (e.target === $('viewer')) closeViewer();
 });
 
+// ---- Slideshow: a new animated picture every 30 seconds ------------------
+//
+// The animation itself comes from C++ (an SVG that animates itself with
+// SMIL, see ToAnimatedSvg): the page only picks seeds and shows their SVGs.
+// 300 steps at 10 steps per second take 30 seconds, so each picture has
+// just finished drawing when the next one starts, from a clear grid.
+
+const SLIDESHOW = {
+  shape: 'hexagon', radius: 9, rows: 21, edge: 'wrap', paint: 'turtle',
+  colors: 4, history: 2, steps: 300,
+};
+const SLIDESHOW_HZ = 10;
+const SLIDESHOW_MIN_INTEREST = 0.95;
+
+let slideTimer = null;
+let slidePicture = null;
+
+// Tries random seeds until one is interesting enough. Most are not, but
+// each try takes well under a millisecond at this size.
+function interestingSlidePicture() {
+  let picture;
+  for (let tries = 0; tries < 10000; tries++) {
+    picture = { ...SLIDESHOW, seed: Math.floor(Math.random() * 0x100000000) };
+    if (art.generate(toArtSettings(picture)).entropy > SLIDESHOW_MIN_INTEREST) {
+      break;
+    }
+  }
+  return picture;
+}
+
+function updateSlideFavorite() {
+  $('slideFav').textContent = isFavorite(slidePicture) ? '★' : '☆';
+}
+
+function nextSlide() {
+  clearTimeout(slideTimer);
+  slidePicture = interestingSlidePicture();
+  const svg = art.svg({ ...toArtSettings(slidePicture), hz: SLIDESHOW_HZ });
+  // A new image starts its animation from the beginning: a clear grid.
+  const old = $('slide').src;
+  $('slide').src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  if (old) URL.revokeObjectURL(old);
+  $('slideInfo').textContent = `#${slidePicture.seed}`;
+  $('slideCommand').textContent = `${commandOf(slidePicture)} --hz ${SLIDESHOW_HZ}`;
+  updateSlideFavorite();
+  slideTimer = setTimeout(nextSlide, (slidePicture.steps / SLIDESHOW_HZ) * 1000);
+}
+
+function startSlideshow() {
+  $('slideshow').hidden = false;
+  nextSlide();
+}
+
+function stopSlideshow() {
+  clearTimeout(slideTimer);
+  $('slideshow').hidden = true;
+}
+
+function favoriteSlide() {
+  toggleFavorite(slidePicture);
+  updateSlideFavorite();
+}
+
+$('slideshowButton').addEventListener('click', startSlideshow);
+$('slideFav').addEventListener('click', favoriteSlide);
+$('slideNext').addEventListener('click', nextSlide);
+$('slideClose').addEventListener('click', stopSlideshow);
+
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (!$('slideshow').hidden) {
+    const slideActions = { Escape: stopSlideshow, f: favoriteSlide, n: nextSlide };
+    if (slideActions[e.key]) {
+      e.preventDefault();
+      slideActions[e.key]();
+    }
+    return;
+  }
   if ($('viewer').hidden) {
     if (e.key === 'g') toggleFavoritesView();
     if (e.key === 'r') randomStart();
+    if (e.key === 's') startSlideshow();
     // Enter opens the first picture, to browse with the keyboard alone.
     if (e.key === 'Enter' && items.length > 0) openViewer(0);
     return;

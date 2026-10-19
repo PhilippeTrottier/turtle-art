@@ -57,7 +57,17 @@
     #viewer canvas { max-width: 100%; max-height: calc(100vh - 110px); }
     #viewer .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                    justify-content: center; }
-    #viewer code { color: #ccc; }
+    #viewer code, #slideshow code { color: #ccc; }
+    #slideshow {
+      z-index: 2;
+      position: fixed; inset: 0; background: #111; color: #eee;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; padding: 12px;
+    }
+    #slideshow[hidden] { display: none; }
+    #slide { width: 100%; height: calc(100vh - 90px); object-fit: contain; }
+    #slideshow .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+                      justify-content: center; }
     kbd { border: 1px solid #888; border-radius: 3px; padding: 0 4px; font-size: 12px; }
   </style>
 </head>
@@ -92,8 +102,9 @@
     </label>
     <label>size <input id="thumb" type="range" min="80" max="400" step="10"></label>
     <button id="favoritesButton" title="Show favorites (g)">★ Favorites</button>
+    <button id="slideshowButton" title="Slideshow: a new animated picture every 30 seconds (s)">▶ Slideshow</button>
     <button id="copyFavorites" hidden title="Copy every favorite as a turtle-art command">Copy as commands</button>
-    <span id="status" title="Keys: r random start · g favorites · Enter open first picture"></span>
+    <span id="status" title="Keys: r random start · g favorites · s slideshow · Enter open first picture"></span>
   </header>
   <main id="grid"></main>
   <div id="empty" hidden>No favorites yet. Click ☆ on a picture, or press <kbd>f</kbd> in the viewer.</div>
@@ -113,6 +124,17 @@
     <code id="command"></code>
     <div><kbd>←</kbd> <kbd>→</kbd> browse · <kbd>f</kbd> favorite ·
       <kbd>d</kbd> download · <kbd>c</kbd> copy command · <kbd>Esc</kbd> close</div>
+  </div>
+
+  <div id="slideshow" hidden>
+    <img id="slide" alt="Animated turtle-art picture">
+    <div class="bar">
+      <span id="slideInfo"></span>
+      <button id="slideFav" title="Favorite (f)">☆</button>
+      <button id="slideNext" title="Next picture now (n)">⏭</button>
+      <button id="slideClose" title="Close (Esc)">✕</button>
+    </div>
+    <code id="slideCommand"></code>
   </div>
 
   <script type="module" src="app.js"></script>

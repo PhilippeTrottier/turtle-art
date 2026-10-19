@@ -123,7 +123,8 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
       .field("edgeMode", &turtle_art::ArtSettings::edge_mode)
       .field("paintCount", &turtle_art::ArtSettings::paint_count)
       .field("historyLength", &turtle_art::ArtSettings::history_length)
-      .field("paintMode", &turtle_art::ArtSettings::paint_mode);
+      .field("paintMode", &turtle_art::ArtSettings::paint_mode)
+      .field("hz", &turtle_art::ArtSettings::hz);
   emscripten::function("generate", &Generate);
   emscripten::function("layout", &Layout);
   emscripten::function("svg", &Svg);
