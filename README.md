@@ -6,6 +6,19 @@ Procedural art made by a turtle walking on a grid of hexagons or squares.
 > Windows/MSVC, and the tests pass natively and as WebAssembly. The
 > Linux/macOS presets have not been run yet.
 
+## Start here
+
+- **To make pictures:** build it ([Building and testing](#building-and-testing)),
+  then run `turtle-art`, or browse thousands of seeds in the
+  [web explorer](#web-explorer).
+- **To maintain or extend it:** read [How we work](#how-we-work) and the
+  [Non-functional requirements](#non-functional-requirements), then `src/`
+  in [Code map](#code-map) order, each file with its tests. Before changing
+  behavior, read [Decisions](#decisions) and [Invariants](#invariants).
+- **To refresh your C++:** [Learning C++ with this code](#learning-c-with-this-code)
+  lists which file shows which feature; each one is explained in a comment
+  where it is used.
+
 ## What it does
 
 A turtle walks on a grid, paints its tiles, and turns according to a rule.
@@ -51,10 +64,12 @@ grid.
 
 Note: on hexagon tiles, a turtle that only turns by 60° cannot come back to
 a tile in fewer than 6 moves (except on small wrapping grids, where wrapping
-around can bring it back sooner); on square tiles, 4 moves. So the previous tiles it senses (at most 5) still hold the
-colors it just painted, and only the tile it stands on can hold an older
-color. That one tile is how the grid feeds back into the walk, as in
-[Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
+around can bring it back sooner), so the previous tiles it senses (at most
+5) still hold the colors it just painted, and only the tile it stands on can
+hold an older color. That one tile is how the grid feeds back into the
+walk, as in [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
+On square tiles a turtle can come back in 4 moves, so with a history of 5 or
+6 an older color can also reach it through a previous tile.
 
 ### Colors
 
@@ -156,9 +171,9 @@ One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
 `EMSDK` at it (the script also looks in `~/emsdk` by itself). Emscripten is a
 compiler toolchain, like MSVC or GCC, so vcpkg does not install it; vcpkg
 expects it to be installed already, and uses it to build the web build's
-packages (GoogleTest) through its `wasm32-emscripten` triplet. Use the version the explorer is tested
-with, **6.0.12**, so everyone builds the same thing (configuring warns if
-another version is found):
+packages (GoogleTest) through its `wasm32-emscripten` triplet. Use the
+version the explorer is tested with, **6.0.12**, so everyone builds the same
+thing (configuring warns if another version is found):
 
 ```bash
 git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
@@ -218,8 +233,17 @@ Using it:
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
 
-The page itself (`index.html`, `app.js`) is not unit tested; keep it small. Everything
-that decides what a picture looks like stays in C++.
+How the page works: `app.js` asks the C++ module (`web/bindings.cc`) for
+each picture's tile colors (`generate`), where its tiles go (`layout`) and,
+for downloads and the screensaver, its SVG (`svg`); it only draws and
+handles input. Its sections, in order: settings (mirrored in the URL),
+favorites, drawing, the grid of thumbnails, the large viewer, the hex
+screensaver, keys. Thumbnails and favorites are generated a few
+milliseconds per animation frame, so the page stays responsive while they
+appear.
+
+The page itself (`index.html`, `app.js`) is not unit tested; keep it small.
+Everything that decides what a picture looks like stays in C++.
 
 ### Formatting and linting
 
@@ -277,14 +301,46 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
 
-`web/bindings.cc` is the web explorer's only C++: it exposes `RunArt`,
-`MakeArt`, the layout and the palette to JavaScript.
+`web/bindings.cc` is the web explorer's only C++: it exposes `RunArt` (as
+tile colors plus an interest score), `MakeArt`, the layout, the wrap copies
+and the palette to JavaScript.
+
+## Learning C++ with this code
+
+Each feature below is explained in a comment where it is used. Read the
+file, then its test in `tests/`, which shows it in use.
+
+| Feature | Where |
+|---------|-------|
+| `enum class` (scoped enums) | `color.h`, `action.h`, `grid.h` |
+| Plain structs with default member values; designated initializers `{.q = 1}` (C++20) | `tile.h`, `layout.h`; used in `grid.cc` and the tests |
+| Defaulted `operator<=>` ("spaceship", C++20), giving all comparisons | `tile.h` |
+| `constexpr`, and `inline constexpr` variables in headers (C++17) | `color.h`, `rule_table.h`, `layout.cc` |
+| `std::array`, `std::vector`, `std::deque`, `std::map`, `std::set` | `grid.cc`, `rule_table.h`, `turtle.h`, `grid.h`, `layout.cc` |
+| `std::optional` for "maybe no value" instead of a sentinel | `grid.h` (`NeighborOf`) |
+| `std::string_view` (C++17) for read-only text | `palette.h` |
+| `std::format` (C++20) and `std::numbers::sqrt3` (C++20) | `svg.cc`, `layout.cc` |
+| Classes: private data, accessors, `const` methods, named constructors, member initializer lists | `grid.h` / `grid.cc` |
+| `explicit` constructors with default arguments | `turtle.h`, `rule_table.h` |
+| `std::move` to hand over objects instead of copying | `art.cc` |
+| Unnamed namespaces for file-local helpers | every `.cc`, e.g. `layout.cc` |
+| Preconditions with `assert`; no exceptions (Google style) | `grid.cc`, `rule_table.cc` |
+| RAII: a file closed by its destructor | `main.cc` |
+| Portable randomness: `std::mt19937` without standard distributions | `random_rules.cc` |
+| Unit tests with GoogleTest, real objects instead of mocks | `tests/` |
+| Modern CMake: targets, an INTERFACE target for shared flags, generator expressions, presets | `CMakeLists.txt`, `CMakePresets.json` |
+| Calling C++ from JavaScript: WebAssembly with Embind | `web/bindings.cc` |
+
+Not shown here, on purpose (see [Decisions](#decisions)): templates,
+inheritance, smart pointers, exceptions, and lambdas (the code has had no
+need for one since `RuleTable` was rewritten).
 
 ## Why this repository exists
 
 This project has two goals, and they are equally important:
 
-1. **Make the art.** A working, fun generator of hex-grid turtle pictures.
+1. **Make the art.** A working, fun generator of turtle pictures on hexagon
+   and square grids.
 2. **Teach C++ by example.** The codebase is meant to be read by people who
    are rusty with C++ and want to refresh how the language is used well
    today. It should show modern, idiomatic C++ in a project small enough to
@@ -387,9 +443,9 @@ decisions go here too; there is no separate list of open questions.
   animation, no script): each tile starts unpainted and gets one `<set>`
   per time it is painted, switching its color class at step / hz seconds
   (`ToAnimatedSvg`). It plays in any browser, also as a plain `<img>`, which
-  is how the explorer's hex screensaver shows it. `--hz 0` (the default) gives the
-  still picture, unchanged. The screensaver's 600 steps at 10 Hz take exactly
-  its one-minute period.
+  is how the explorer's hex screensaver shows it. `--hz 0` (the default)
+  gives the still picture, unchanged. The screensaver's 600 steps at 10 Hz
+  take exactly its one-minute period.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
@@ -431,8 +487,7 @@ every picture for every seed.
    `generate` and the centers `layout` return to `web/app.js`. All geometry
    lives in `layout.cc`; the page has none of its own.
 4. **Settings:** each `ArtSettings` field appears in `MakeGrid` or `RunArt`,
-   `main.cc`,
-   the options table above, `web/bindings.cc` (`value_object`) and
+   `main.cc`, the options table above, `web/bindings.cc` (`value_object`) and
    `web/app.js` (`DEFAULTS`, `pictureOf`, `toArtSettings`, `commandOf`).
    Adding a knob means touching all of them, plus tests in
    `tests/art_test.cc`.
@@ -440,6 +495,5 @@ every picture for every seed.
 ## Out of scope (for now)
 
 - High-performance optimization (SIMD/SSE, multithreading, cache tuning, …).
-- Live animation of the walk (the explorer shows finished pictures).
 - User-written rule tables; rules come from a seed.
 - Favorites shared across browsers or people (they live in one browser).

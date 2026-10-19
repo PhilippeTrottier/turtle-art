@@ -12,9 +12,9 @@ namespace turtle_art {
 
 std::vector<int> ColorCounts(const Grid& grid) {
   std::vector<int> counts(kMaxPaintCount + 1, 0);
-  for (const Tile hex : grid.Tiles()) {
+  for (const Tile tile : grid.Tiles()) {
     // Color values are 0 to kMaxPaintCount, so the index is in range.
-    ++counts[static_cast<std::size_t>(grid.ColorAt(hex))];
+    ++counts[static_cast<std::size_t>(grid.ColorAt(tile))];
   }
   return counts;
 }

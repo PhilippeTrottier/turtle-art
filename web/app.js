@@ -1,6 +1,11 @@
-// The turtle-art explorer: browse thousands of seeds, view them large and
-// keep favorites. The art itself comes from the C++ library, compiled to
-// WebAssembly (see bindings.cc); this file is only the page around it.
+// The turtle-art explorer: browse thousands of seeds, view them large, keep
+// favorites, or watch the hex screensaver. The art itself comes from the C++
+// library, compiled to WebAssembly (see bindings.cc); this file is only the
+// page around it: it asks C++ for tile colors, layouts and SVGs, then draws
+// and handles input.
+//
+// Sections, in order: settings (mirrored in the URL), favorites, drawing,
+// the grid of thumbnails, the large viewer, the hex screensaver, keys.
 
 import createTurtleArt from './turtle_art.js';
 

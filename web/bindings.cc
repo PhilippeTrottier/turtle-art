@@ -32,8 +32,8 @@ using emscripten::val;
 val Generate(const turtle_art::ArtSettings& settings) {
   const turtle_art::Grid grid = turtle_art::RunArt(settings);
   std::vector<std::uint8_t> colors;
-  for (const turtle_art::Tile hex : grid.Tiles()) {
-    colors.push_back(static_cast<std::uint8_t>(grid.ColorAt(hex)));
+  for (const turtle_art::Tile tile : grid.Tiles()) {
+    colors.push_back(static_cast<std::uint8_t>(grid.ColorAt(tile)));
   }
   val result = val::object();
   // typed_memory_view lets JavaScript see `colors` without copying it. The
