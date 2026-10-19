@@ -9,6 +9,7 @@ add_executable(turtle_art_tests
   grid_test.cc
   layout_test.cc
   palette_test.cc
+  png_test.cc
   random_rules_test.cc
   rule_table_test.cc
   svg_test.cc
@@ -16,7 +17,10 @@ add_executable(turtle_art_tests
   turtle_test.cc)
 
 # GTest::gtest_main provides main(), which runs every TEST in the executable.
-target_link_libraries(turtle_art_tests PRIVATE turtle_art_lib GTest::gtest_main)
+# lodepng too: the PNG tests decode what they encode.
+find_package(lodepng CONFIG REQUIRED)
+target_link_libraries(turtle_art_tests PRIVATE turtle_art_lib lodepng
+                                               GTest::gtest_main)
 
 # Registers each TEST with CTest, so `ctest` can list and run them one by one.
 include(GoogleTest)

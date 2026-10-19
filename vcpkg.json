@@ -2,11 +2,12 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "turtle-art",
   "version": "0.1.0",
-  "description": "Procedural art made by a turtle walking on a hexagonal grid.",
+  "description": "Procedural art made by a turtle walking on a grid of hexagons or squares.",
   "license": "MIT",
   "builtin-baseline": "bf19794383e8fb95eba5aa553235bc8ec2271688",
   "dependencies": [
     "cli11",
-    "gtest"
+    "gtest",
+    "lodepng"
   ]
 }

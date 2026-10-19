@@ -6,6 +6,7 @@ add_library(turtle_art_lib
   grid_stats.cc
   layout.cc
   palette.cc
+  png.cc
   random_rules.cc
   rule_table.cc
   svg.cc
@@ -15,7 +16,10 @@ add_library(turtle_art_lib
 # PUBLIC: targets linking turtle_art_lib also get this include path, so they
 # can write #include "grid.h".
 target_include_directories(turtle_art_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(turtle_art_lib PUBLIC turtle_art_options)
+# lodepng writes PNG files (png.cc); vcpkg installs it from vcpkg.json.
+find_package(lodepng CONFIG REQUIRED)
+target_link_libraries(turtle_art_lib PUBLIC turtle_art_options
+                                     PRIVATE lodepng)
 
 # The command-line program: a thin layer over turtle_art_lib. Not built for
 # the web, which has its own front end (web/).
