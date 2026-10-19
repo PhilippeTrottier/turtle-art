@@ -36,6 +36,9 @@ struct ArtSettings {
   int history_length = 1;
   // How the turtle colors tiles: its own color, or each tile's next color.
   PaintMode paint_mode = PaintMode::kTurtleColor;
+  // Steps per second to animate the picture at, replaying the walk (see
+  // ToAnimatedSvg); 0 for a still picture of the final state.
+  double hz = 0.0;
 };
 
 // Returns the unpainted grid the settings describe (shape, size, edge).
@@ -45,7 +48,8 @@ Grid MakeGrid(const ArtSettings& settings);
 // and returns the painted grid. The same settings always give the same grid.
 Grid RunArt(const ArtSettings& settings);
 
-// Returns RunArt(settings) as an SVG image.
+// Returns the picture for the settings as an SVG image: still, or animated
+// when settings.hz is more than 0.
 std::string MakeArt(const ArtSettings& settings);
 
 }  // namespace turtle_art

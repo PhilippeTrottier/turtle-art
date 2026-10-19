@@ -75,6 +75,11 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
                  "decide each move")
       ->capture_default_str()
       ->check(CLI::Range(1, turtle_art::kMaxHistoryLength));
+  app.add_option("--hz", settings.hz,
+                 "Animate the SVG at this many steps per second, replaying "
+                 "the walk (0: a still picture of the final state)")
+      ->capture_default_str()
+      ->check(CLI::NonNegativeNumber);
   app.add_option("--out", out_path, "Path of the SVG file to write")
       ->capture_default_str();
 

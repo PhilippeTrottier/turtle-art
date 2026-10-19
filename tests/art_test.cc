@@ -94,5 +94,16 @@ TEST(ArtTest, MakeGridIsUnpaintedAndShapedBySettings) {
   EXPECT_EQ(grid.ColorAt(Tile{}), Color::kUnpainted);
 }
 
+TEST(ArtTest, ZeroHertzIsAStillPicture) {
+  EXPECT_EQ(MakeArt({.seed = 3, .steps = 50, .radius = 4, .hz = 0}),
+            ToSvg(RunArt({.seed = 3, .steps = 50, .radius = 4})));
+}
+
+TEST(ArtTest, PositiveHertzAnimates) {
+  EXPECT_NE(MakeArt({.seed = 3, .steps = 50, .radius = 4, .hz = 10})
+                .find("<set attributeName=\"class\""),
+            std::string::npos);
+}
+
 }  // namespace
 }  // namespace turtle_art
