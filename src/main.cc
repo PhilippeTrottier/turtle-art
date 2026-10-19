@@ -2,11 +2,13 @@
 // file; everything else lives in turtle_art_lib, where it is tested.
 
 #include <CLI/CLI.hpp>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "art.h"
 #include "color.h"
@@ -80,7 +82,9 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
                  "the walk (0: a still picture of the final state)")
       ->capture_default_str()
       ->check(CLI::NonNegativeNumber);
-  app.add_option("--out", out_path, "Path of the SVG file to write")
+  app.add_option("--out", out_path,
+                 "File to write: an SVG image, or a PNG (one pixel per tile, "
+                 "rectangle grids only) if it ends with .png")
       ->capture_default_str();
 
   // CLI11 reports bad options by throwing. This macro catches that, prints
@@ -92,10 +96,31 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
     settings.shape = turtle_art::GridShape::kRectangle;
   }
 
+  // ends_with (C++20) tests how a string ends.
+  const bool png = out_path.ends_with(".png");
+  if (png && settings.shape != turtle_art::GridShape::kRectangle) {
+    std::cerr << "error: a PNG needs a rectangle grid (--width and --height); "
+                 "hexagons have no pixel-perfect form\n";
+    return 1;
+  }
+  if (png && settings.hz > 0) {
+    std::cerr << "error: a PNG cannot be animated; write an .svg with --hz\n";
+    return 1;
+  }
+
   // std::ofstream closes the file automatically when `out` goes out of
   // scope (RAII: the object owns the resource and releases it when it dies).
-  std::ofstream out(out_path);
-  out << turtle_art::MakeArt(settings);
+  // A PNG is binary: std::ios::binary stops Windows from turning byte 10
+  // (a newline) into the two bytes 13 10.
+  std::ofstream out(out_path, std::ios::binary);
+  if (png) {
+    const std::vector<std::uint8_t> bytes = turtle_art::MakePng(settings);
+    // write() takes chars; reinterpret_cast views the same bytes as chars.
+    out.write(reinterpret_cast<const char*>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+  } else {
+    out << turtle_art::MakeArt(settings);
+  }
   // A stream converts to false once any operation on it has failed.
   if (!out) {
     std::cerr << "error: could not write " << out_path << "\n";

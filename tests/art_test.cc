@@ -2,7 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 #include "color.h"
 #include "grid.h"
@@ -103,6 +105,19 @@ TEST(ArtTest, PositiveHertzAnimates) {
   EXPECT_NE(MakeArt({.seed = 3, .steps = 50, .radius = 4, .hz = 10})
                 .find("<set attributeName=\"class\""),
             std::string::npos);
+}
+
+TEST(ArtTest, MakePngWritesAPngFile) {
+  const std::vector<std::uint8_t> png = MakePng({.seed = 3,
+                                                 .steps = 50,
+                                                 .shape = GridShape::kRectangle,
+                                                 .width = 8,
+                                                 .height = 5});
+  // Every PNG file starts with byte 0x89, then the letters "PNG".
+  EXPECT_EQ(png[0], 0x89);
+  EXPECT_EQ(png[1], 'P');
+  EXPECT_EQ(png[2], 'N');
+  EXPECT_EQ(png[3], 'G');
 }
 
 }  // namespace

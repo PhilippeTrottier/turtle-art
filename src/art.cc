@@ -1,10 +1,12 @@
 #include "art.h"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "grid.h"
+#include "png.h"
 #include "random_rules.h"
 #include "rule_table.h"
 #include "svg.h"
@@ -42,6 +44,10 @@ Run Walked(const ArtSettings& settings) {
 }  // namespace
 
 Grid RunArt(const ArtSettings& settings) { return Walked(settings).grid; }
+
+std::vector<std::uint8_t> MakePng(const ArtSettings& settings) {
+  return ToPng(Walked(settings).grid);
+}
 
 std::string MakeArt(const ArtSettings& settings) {
   const Run run = Walked(settings);

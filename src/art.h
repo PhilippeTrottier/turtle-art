@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "grid.h"
 #include "rule_table.h"
@@ -51,6 +52,10 @@ Grid RunArt(const ArtSettings& settings);
 // Returns the picture for the settings as an SVG image: still, or animated
 // when settings.hz is more than 0.
 std::string MakeArt(const ArtSettings& settings);
+
+// Returns the picture for the settings as a pixel-perfect PNG image (see
+// ToPng). The settings must describe a rectangle grid.
+std::vector<std::uint8_t> MakePng(const ArtSettings& settings);
 
 }  // namespace turtle_art
 
