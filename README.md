@@ -13,7 +13,7 @@ turns according to a rule. The painted grid is written out as an SVG image,
 or browsed by the thousand in the [web explorer](#web-explorer).
 
 ```
-turtle-art --seed 42 --steps 10000 --radius 50 --out art.svg
+turtle-art --seed 42 --edge wrap --history 1 --radius 15 --steps 15000 --out art.svg
 ```
 
 ### The walk
@@ -22,7 +22,7 @@ The turtle has a **position** (a tile), a **heading** (one of the 6 neighbor
 directions) and a **current color**. Each step:
 
 1. **Sense** — read the grid colors of the last H tiles visited (`--history`,
-   default 3): the tile it stands on and the H − 1 before it. Tiles never
+   default 1): the tile it stands on and the H − 1 before it. Tiles never
    painted have the color *unpainted*. At the start, missing history counts
    as *unpainted*.
 2. **Decide** — look up those H colors in the rule table, which gives exactly
@@ -59,7 +59,8 @@ color. That one tile is how the grid feeds back into the walk, as in
 ### The rule table
 
 - The table maps every combination of H sensed colors to one action:
-  (N + 1)^H entries, **125** with the defaults (5 × 5 × 5).
+  (N + 1)^H entries: just **5** with the defaults (4 colors, history 1),
+  125 with history 3.
 - It is generated from `--seed` with a seeded random number generator, so the
   same seed always produces the same table, and the same picture.
 
@@ -79,13 +80,13 @@ color. That one tile is how the grid feeds back into the walk, as in
 
 | Option     | Meaning                                  | Default          |
 |------------|------------------------------------------|------------------|
-| `--seed`   | Seed for the rule table                  | `30`             |
-| `--steps`  | Maximum number of steps                  | `10000`          |
-| `--radius` | Grid radius in tiles                     | `50`             |
+| `--seed`   | Seed for the rule table                  | `1`              |
+| `--steps`  | Maximum number of steps                  | `15000`          |
+| `--radius` | Grid radius in tiles                     | `15`             |
 | `--edge`   | At the edge: `wrap` around to the opposite side, or `stop` the walk | `wrap` |
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
-| `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `3` |
+| `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
 `--help` lists them too. Wrapping is the default edge because with
@@ -338,9 +339,13 @@ decisions go here too; there is no separate list of open questions.
   never `std::uniform_int_distribution`: only the engine's output is the
   same in every standard library, and pictures must not depend on the
   platform. All actions are equally likely.
-- **Defaults:** `--edge wrap` and seed 30. With `stop`, most turtles walk
-  off the grid within a few dozen steps. `--paint turtle` stays the default
-  so seeds keep their pictures; `cycle` is opt-in.
+- **Defaults** (the CLI's and the explorer's): `--edge wrap --paint turtle
+  --colors 4 --history 1 --radius 15 --steps 15000`, seed 1, and in the
+  explorer min interest 0.6. Chosen by browsing: a small grid walked long
+  enough to fill it gives good pictures most often (about 2 seeds in 5 pass
+  the 0.6 filter). With `--edge stop` most turtles walk off within a few
+  dozen steps, and `--paint cycle` mostly looks like noise, so both are
+  opt-in. `RuleTable()` keeps the original 4-color, 3-tile shape for tests.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;

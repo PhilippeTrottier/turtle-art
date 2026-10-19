@@ -9,8 +9,10 @@
 
 namespace turtle_art {
 
-// The default number of palette colors, and of recently visited tiles (the
-// current one included) whose colors decide the next action.
+// The shape of a RuleTable built without arguments (as most tests do): 4
+// palette colors, and 3 recently visited tiles (the current one included)
+// whose colors decide the next action, the original rule of this project.
+// The program's own defaults are in ArtSettings (art.h).
 inline constexpr int kDefaultPaintCount = 4;
 inline constexpr int kDefaultHistoryLength = 3;
 

@@ -9,8 +9,8 @@ const PALETTE = art.palette();
 const SQRT3 = Math.sqrt(3);
 const FAVORITES_KEY = 'turtle-art-favorites';
 const DEFAULTS = {
-  edge: 'wrap', paint: 'turtle', colors: 4, history: 3, radius: 25, steps: 6000, start: 1,
-  minEntropy: 0.5, thumb: 160,
+  edge: 'wrap', paint: 'turtle', colors: 4, history: 1, radius: 15,
+  steps: 15000, start: 1, minEntropy: 0.6, thumb: 160,
 };
 const BATCH = 60;          // Pictures added each time the end comes into view.
 const FRAME_BUDGET = 12;   // Milliseconds of generating per animation frame.

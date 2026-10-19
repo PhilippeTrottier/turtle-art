@@ -34,8 +34,16 @@ TEST(ArtTest, EdgeModeChangesTheImage) {
 }
 
 TEST(ArtTest, PaintCountChangesTheImage) {
-  EXPECT_NE(MakeArt({.seed = 3, .steps = 200, .radius = 5}),
-            MakeArt({.seed = 3, .steps = 200, .radius = 5, .paint_count = 7}));
+  EXPECT_NE(MakeArt({.seed = 3,
+                     .steps = 200,
+                     .radius = 5,
+                     .paint_count = 4,
+                     .history_length = 3}),
+            MakeArt({.seed = 3,
+                     .steps = 200,
+                     .radius = 5,
+                     .paint_count = 7,
+                     .history_length = 3}));
 }
 
 TEST(ArtTest, HistoryLengthChangesTheImage) {
