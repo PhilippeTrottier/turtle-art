@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+
 #include "action.h"
 #include "color.h"
 #include "rule_table.h"
@@ -20,8 +22,8 @@ TEST(RandomRulesTest, DifferentSeedsGiveDifferentTables) {
 // A fixed, known value. If this fails on one platform only, the generator is
 // not producing the same numbers everywhere and pictures would differ.
 TEST(RandomRulesTest, SeedOneStartsWithTurnLeft) {
-  EXPECT_EQ(RandomRuleTable(1).ActionFor(
-                {Color::kUnpainted, Color::kUnpainted, Color::kUnpainted}),
+  EXPECT_EQ(RandomRuleTable(1).ActionFor(std::array{
+                Color::kUnpainted, Color::kUnpainted, Color::kUnpainted}),
             Action::kTurnLeft);
 }
 

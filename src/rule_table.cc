@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <span>
 #include <vector>
 
 #include "action.h"
@@ -32,11 +33,11 @@ RuleTable::RuleTable(int paint_count, int history_length)
 }
 
 // IndexOf() checks `sensed`, so its result is always in range.
-Action RuleTable::ActionFor(const std::vector<Color>& sensed) const {
+Action RuleTable::ActionFor(std::span<const Color> sensed) const {
   return actions_[IndexOf(sensed)];
 }
 
-void RuleTable::SetAction(const std::vector<Color>& sensed, Action action) {
+void RuleTable::SetAction(std::span<const Color> sensed, Action action) {
   actions_[IndexOf(sensed)] = action;
 }
 
@@ -45,7 +46,7 @@ void RuleTable::SetActionAt(std::size_t index, Action action) {
   actions_[index] = action;
 }
 
-std::size_t RuleTable::IndexOf(const std::vector<Color>& sensed) const {
+std::size_t RuleTable::IndexOf(std::span<const Color> sensed) const {
   assert(static_cast<int>(sensed.size()) == history_length_);
   const std::size_t base = static_cast<std::size_t>(paint_count_) + 1;
   // Horner's method: for digits d1 d2 d3, ((d1 * base) + d2) * base + d3.

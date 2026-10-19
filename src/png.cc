@@ -39,13 +39,14 @@ std::vector<std::uint8_t> ToPng(const Grid& grid) {
   state.encoder.auto_convert = 0;
 
   std::vector<std::uint8_t> png;
-  const unsigned error =
+  // [[maybe_unused]] (C++17): `error` is only read by assert(), which
+  // compiles to nothing in Release builds; this keeps the compiler quiet.
+  [[maybe_unused]] const unsigned error =
       lodepng::encode(png, pixels, static_cast<unsigned>(grid.width()),
                       static_cast<unsigned>(grid.height()), state);
   // Encoding valid pixels in memory only fails when out of memory, which
   // ends the program anyway (see "Style notes" in the README).
   assert(error == 0);
-  (void)error;  // Unused when assert() compiles to nothing (Release).
   return png;
 }
 

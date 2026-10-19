@@ -2,6 +2,7 @@
 #define TURTLE_ART_SRC_RULE_TABLE_H_
 
 #include <cstddef>
+#include <span>
 #include <vector>
 
 #include "action.h"
@@ -46,12 +47,15 @@ class RuleTable {
   // Returns the action for `sensed`, which must hold history_length()
   // colors, oldest first.
   //
-  // Taking a const reference to a std::vector lets callers pass a braced
-  // list, as in ActionFor({Color::kPaint1, Color::kUnpainted, ...}).
-  Action ActionFor(const std::vector<Color>& sensed) const;
+  // std::span (C++20) is a view of consecutive elements owned by someone
+  // else: a pointer plus a length, cheap to pass by value. One parameter
+  // accepts a std::vector, a std::array or part of either, without copying.
+  // In C++20 a braced list cannot become a span, so callers write
+  // ActionFor(std::array{Color::kPaint1, Color::kUnpainted, ...}).
+  Action ActionFor(std::span<const Color> sensed) const;
 
   // Makes `sensed` map to `action`. `sensed` is as for ActionFor().
-  void SetAction(const std::vector<Color>& sensed, Action action);
+  void SetAction(std::span<const Color> sensed, Action action);
 
   // Makes the combination at `index`, in [0, size()), map to `action`.
   // Combinations are numbered by reading the sensed colors, oldest first, as
@@ -65,7 +69,7 @@ class RuleTable {
 
  private:
   // Returns the index of `sensed`, as described at SetActionAt().
-  std::size_t IndexOf(const std::vector<Color>& sensed) const;
+  std::size_t IndexOf(std::span<const Color> sensed) const;
 
   int paint_count_;
   int history_length_;

@@ -340,6 +340,8 @@ file, then its test in `tests/`, which shows it in use.
 | `constexpr`, and `inline constexpr` variables in headers (C++17) | `color.h`, `rule_table.h`, `layout.cc` |
 | `std::array`, `std::vector`, `std::deque`, `std::map`, `std::set` | `grid.cc`, `rule_table.h`, `turtle.h`, `grid.h`, `layout.cc` |
 | `std::optional` for "maybe no value" instead of a sentinel | `grid.h` (`NeighborOf`) |
+| `std::span` (C++20): a view of someone else's elements; class template argument deduction, `std::array{...}` | `rule_table.h`; `tests/rule_table_test.cc` |
+| `[[maybe_unused]]` (C++17) for a variable read only by `assert` | `png.cc` |
 | `std::string::ends_with` (C++20) | `main.cc` |
 | `std::format` (C++20) and `std::numbers::sqrt3` (C++20) | `svg.cc`, `layout.cc` |
 | Classes: private data, accessors, `const` methods, named constructors, member initializer lists | `grid.h` / `grid.cc` |
@@ -354,9 +356,10 @@ file, then its test in `tests/`, which shows it in use.
 | Modern CMake: targets, an INTERFACE target for shared flags, generator expressions, presets | `CMakeLists.txt`, `CMakePresets.json` |
 | Calling C++ from JavaScript: WebAssembly with Embind | `web/bindings.cc` |
 
-Not shown here, on purpose (see [Decisions](#decisions)): templates,
-inheritance, smart pointers, exceptions, and lambdas (the code has had no
-need for one since `RuleTable` was rewritten).
+Not shown here (see [Decisions](#decisions) for why): templates,
+inheritance, smart pointers, exceptions, `std::string_view`, ranges, and
+lambdas (the code has had no need for one since `RuleTable` was
+rewritten).
 
 ## Why this repository exists
 
@@ -504,9 +507,21 @@ decisions go here too; there is no separate list of open questions.
   from 0 to log2(colors + 1): 2.32 with 4 colors, but only 1 with 1 color.
   Thresholds (the default filter 0.6, the screensaver's 0.95) therefore mean
   more at few colors than at many.
-- **C++ features left out on purpose:** templates, inheritance, smart
-  pointers and exceptions. The Google guide discourages most of them and the
-  program does not need them (KISS). Look elsewhere to practice them.
+- **C++ features left out:** of these, the Google guide rules out only
+  exceptions ("We do not use C++ exceptions"). The others are allowed and
+  simply not needed here (KISS):
+  - **Templates:** the guide allows them but warns against complicated
+    template metaprogramming; every type here is concrete.
+  - **Inheritance:** allowed (public only), though the guide prefers
+    composition; there is one kind of turtle, grid and rule table, so no
+    interface has two implementations.
+  - **Smart pointers:** the guide recommends `std::unique_ptr` when an
+    object is owned through a pointer; here every object is a value or a
+    standard container, so nothing is owned through a pointer.
+  - **`std::string_view` and ranges (`std::ranges`, views):** no function
+    takes read-only text, and the loops are short `for` loops that ranges
+    would only make clearer with a lambda.
+  Look elsewhere to practice them.
 - **clang-tidy:** `[[nodiscard]]` and 1-byte enums are not required (noise
   for this codebase); lower_case accessors like `radius()` are allowed, as in
   the Google guide.

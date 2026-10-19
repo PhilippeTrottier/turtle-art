@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <vector>
 
 #include "action.h"
@@ -45,8 +46,9 @@ TEST(TurtleTest, StepWithKeepMovesForward) {
 TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kTurnLeft);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), kNorthEast);
@@ -56,8 +58,9 @@ TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
 TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kTurnRight);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), kSouthEast);
@@ -67,8 +70,9 @@ TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
 TEST(TurtleTest, StepWithChangeColorPaintsWithNextColor) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kChangeColor);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kChangeColor);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint2);
@@ -79,8 +83,9 @@ TEST(TurtleTest, StepSensesColorOfCurrentTile) {
   Grid grid = Grid::Hexagon(3);
   grid.Paint(Tile{}, Color::kPaint3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kPaint3},
-                  Action::kTurnRight);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kPaint3},
+      Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), kSouthEast);
@@ -89,8 +94,9 @@ TEST(TurtleTest, StepSensesColorOfCurrentTile) {
 TEST(TurtleTest, SecondStepSensesPreviousTile) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kPaint1, Color::kUnpainted},
-                  Action::kTurnRight);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kPaint1, Color::kUnpainted},
+      Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   turtle.Step(grid, rules);
@@ -100,7 +106,7 @@ TEST(TurtleTest, SecondStepSensesPreviousTile) {
 TEST(TurtleTest, ThirdStepSensesTileTwoBack) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kPaint1, Color::kPaint1, Color::kUnpainted},
+  rules.SetAction(std::array{Color::kPaint1, Color::kPaint1, Color::kUnpainted},
                   Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
@@ -147,7 +153,7 @@ TEST(TurtleTest, WalkOnWrappingGridTakesAllSteps) {
 TEST(TurtleTest, OneTileHistorySensesOnlyCurrentTile) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules(4, 1);
-  rules.SetAction({Color::kUnpainted}, Action::kTurnLeft);
+  rules.SetAction(std::array{Color::kUnpainted}, Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), kNorthEast);
@@ -156,9 +162,9 @@ TEST(TurtleTest, OneTileHistorySensesOnlyCurrentTile) {
 TEST(TurtleTest, FourTileHistorySensesThreePreviousTiles) {
   Grid grid = Grid::Hexagon(5);
   RuleTable rules(4, 4);
-  rules.SetAction(
-      {Color::kPaint1, Color::kPaint1, Color::kPaint1, Color::kUnpainted},
-      Action::kTurnRight);
+  rules.SetAction(std::array{Color::kPaint1, Color::kPaint1, Color::kPaint1,
+                             Color::kUnpainted},
+                  Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   turtle.Step(grid, rules);
@@ -170,8 +176,9 @@ TEST(TurtleTest, FourTileHistorySensesThreePreviousTiles) {
 TEST(TurtleTest, ChangeColorWithOnePaintKeepsPaint1) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules(1, 3);
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kChangeColor);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kChangeColor);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.color(), Color::kPaint1);
@@ -203,8 +210,9 @@ TEST(TurtleTest, CycleModeWrapsLastPaintToPaint1) {
 TEST(TurtleTest, CycleModeIgnoresChangeColor) {
   Grid grid = Grid::Hexagon(3);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kChangeColor);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kChangeColor);
   Turtle turtle(PaintMode::kCycle);
   turtle.Step(grid, rules);
   EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
@@ -213,8 +221,9 @@ TEST(TurtleTest, CycleModeIgnoresChangeColor) {
 TEST(TurtleTest, TurnLeftOnSquareTilesHeadsNorth) {
   Grid grid = Grid::Rectangle(5, 5);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kTurnLeft);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kTurnLeft);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), 1);  // North on square tiles.
@@ -224,8 +233,9 @@ TEST(TurtleTest, TurnLeftOnSquareTilesHeadsNorth) {
 TEST(TurtleTest, TurnRightOnSquareTilesHeadsSouth) {
   Grid grid = Grid::Rectangle(5, 5);
   RuleTable rules;
-  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
-                  Action::kTurnRight);
+  rules.SetAction(
+      std::array{Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+      Action::kTurnRight);
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), 3);  // South on square tiles.
