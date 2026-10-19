@@ -38,6 +38,9 @@ struct ArtSettings {
   PaintMode paint_mode = PaintMode::kTurtleColor;
 };
 
+// Returns the unpainted grid the settings describe (shape, size, edge).
+Grid MakeGrid(const ArtSettings& settings);
+
 // Runs a turtle with a rule table made from the settings on a fresh grid,
 // and returns the painted grid. The same settings always give the same grid.
 Grid RunArt(const ArtSettings& settings);

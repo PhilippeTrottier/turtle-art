@@ -4,8 +4,10 @@
 
 #include <string>
 
+#include "color.h"
 #include "grid.h"
 #include "svg.h"
+#include "tile.h"
 #include "turtle.h"
 
 namespace turtle_art {
@@ -80,6 +82,16 @@ TEST(ArtTest, RectangleHasWidthTimesHeightTiles) {
                             .width = 8,
                             .height = 5});
   EXPECT_EQ(grid.Tiles().size(), 40U);
+}
+
+TEST(ArtTest, MakeGridIsUnpaintedAndShapedBySettings) {
+  const Grid grid = MakeGrid({.shape = GridShape::kRectangle,
+                              .width = 3,
+                              .height = 2,
+                              .edge_mode = EdgeMode::kStop});
+  EXPECT_EQ(grid.shape(), GridShape::kRectangle);
+  EXPECT_EQ(grid.edge_mode(), EdgeMode::kStop);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kUnpainted);
 }
 
 }  // namespace

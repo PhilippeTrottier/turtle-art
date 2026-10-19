@@ -6,12 +6,15 @@ import createTurtleArt from './turtle_art.js';
 
 const art = await createTurtleArt();
 const PALETTE = art.palette();
-const SQRT3 = Math.sqrt(3);
 const FAVORITES_KEY = 'turtle-art-favorites';
 const DEFAULTS = {
-  edge: 'wrap', paint: 'turtle', colors: 4, history: 1, radius: 15,
-  steps: 15000, start: 1, minEntropy: 0.6, thumb: 160,
+  shape: 'hexagon', radius: 15, rows: 21, edge: 'wrap', paint: 'turtle',
+  colors: 4, history: 1, steps: 15000, start: 1, minEntropy: 0.6, thumb: 160,
 };
+// Rows offered for golden rectangles and squares. Consecutive Fibonacci
+// numbers have a ratio close to the golden ratio (34 / 21 = 1.619), so a
+// golden rectangle is `rows` high and the next Fibonacci number wide.
+const FIBONACCI = [5, 8, 13, 21, 34, 55, 89, 144, 233];
 const BATCH = 60;          // Pictures added each time the end comes into view.
 const FRAME_BUDGET = 12;   // Milliseconds of generating per animation frame.
 
@@ -19,9 +22,9 @@ const $ = (id) => document.getElementById(id);
 
 // ---- Settings: the controls, mirrored in the URL's #fragment -------------
 
-const controls = ['edge', 'paint', 'colors', 'history', 'radius', 'steps',
-                  'start', 'minEntropy', 'thumb'];
-const textControls = ['edge', 'paint'];  // The rest are numbers.
+const controls = ['shape', 'radius', 'rows', 'edge', 'paint', 'colors',
+                  'history', 'steps', 'start', 'minEntropy', 'thumb'];
+const textControls = ['shape', 'edge', 'paint'];  // The rest are numbers.
 
 function readControls() {
   const s = {};
@@ -50,22 +53,39 @@ function settingsFromHash() {
 
 // A picture is fully described by its seed plus these knobs.
 function pictureOf(s, seed) {
-  return { seed, steps: s.steps, radius: s.radius, edge: s.edge,
-           paint: s.paint, colors: s.colors, history: s.history };
+  return { seed, steps: s.steps, shape: s.shape, radius: s.radius,
+           rows: s.rows, edge: s.edge, paint: s.paint, colors: s.colors,
+           history: s.history };
 }
 
-// Favorites saved before the paint knob existed have no `paint`; they were
-// made in 'turtle' mode.
+// Favorites saved before a knob existed lack it; they used its first value.
 const paintOf = (p) => p.paint ?? 'turtle';
+const shapeOf = (p) => p.shape ?? 'hexagon';
+
+// Returns the columns and rows of a golden rectangle or square picture.
+function sizeOf(p) {
+  if (shapeOf(p) === 'square') return { width: p.rows, height: p.rows };
+  const next = FIBONACCI[FIBONACCI.indexOf(p.rows) + 1];
+  return { width: next, height: p.rows };
+}
 
 function toArtSettings(p) {
-  return { seed: p.seed, steps: p.steps, radius: p.radius,
-           edgeMode: art.EdgeMode[p.edge], paintMode: art.PaintMode[paintOf(p)],
-           paintCount: p.colors, historyLength: p.history };
+  const hexagon = shapeOf(p) === 'hexagon';
+  const { width, height } = hexagon ? { width: 0, height: 0 } : sizeOf(p);
+  return { seed: p.seed, steps: p.steps,
+           shape: hexagon ? art.GridShape.hexagon : art.GridShape.rectangle,
+           radius: p.radius, width, height, edgeMode: art.EdgeMode[p.edge],
+           paintMode: art.PaintMode[paintOf(p)], paintCount: p.colors,
+           historyLength: p.history };
 }
 
 function commandOf(p) {
-  return `turtle-art --seed ${p.seed} --steps ${p.steps} --radius ${p.radius}` +
+  let grid = `--radius ${p.radius}`;
+  if (shapeOf(p) !== 'hexagon') {
+    const { width, height } = sizeOf(p);
+    grid = `--width ${width} --height ${height}`;
+  }
+  return `turtle-art --seed ${p.seed} --steps ${p.steps} ${grid}` +
          ` --edge ${p.edge} --paint ${paintOf(p)} --colors ${p.colors}` +
          ` --history ${p.history}`;
 }
@@ -102,51 +122,40 @@ function toggleFavorite(p) {
 
 // ---- Drawing --------------------------------------------------------------
 
-// Tile centers for a radius, in the same order as Grid::Tiles() in C++
-// (rows r from -radius to radius, q from low to high), in units of the
-// hexagon size. Same formula as CenterOf() in svg.cc.
-const centersCache = new Map();
-function centersFor(radius) {
-  if (!centersCache.has(radius)) {
-    const centers = [];
-    for (let r = -radius; r <= radius; r++) {
-      for (let q = -radius; q <= radius; q++) {
-        if ((Math.abs(q) + Math.abs(r) + Math.abs(q + r)) / 2 <= radius) {
-          centers.push([SQRT3 * (q + r / 2), 1.5 * r]);
-        }
-      }
-    }
-    centersCache.set(radius, centers);
-  }
-  return centersCache.get(radius);
+// Where a picture's tiles go, from the C++ layout (see bindings.cc): tile
+// centers in Grid::Tiles() order, one tile's outline, and the picture's
+// bounds. Cached, since every seed with the same grid shares it.
+const layoutCache = new Map();
+function layoutFor(p) {
+  const s = toArtSettings({ ...p, seed: 0 });
+  const key = `${shapeOf(p)} ${s.radius} ${s.width} ${s.height}`;
+  if (!layoutCache.has(key)) layoutCache.set(key, art.layout(s));
+  return layoutCache.get(key);
 }
 
 // Draws `colors` (one Color value per tile) onto `canvas`, `width` CSS
 // pixels wide. Tiles of one color go into one path, so each color is a
 // single fill call.
-function draw(canvas, radius, colors, width) {
-  const halfW = SQRT3 * (radius + 0.5);
-  const halfH = 1.5 * radius + 1;
-  const scale = (width * devicePixelRatio) / (2 * halfW);
-  canvas.width = Math.round(2 * halfW * scale);
-  canvas.height = Math.round(2 * halfH * scale);
+function draw(canvas, layout, colors, width) {
+  const { centers, outline, bounds } = layout;
+  const scale = (width * devicePixelRatio) / bounds.width;
+  canvas.width = Math.round(bounds.width * scale);
+  canvas.height = Math.round(bounds.height * scale);
   const ctx = canvas.getContext('2d');
-  ctx.setTransform(scale, 0, 0, scale, halfW * scale, halfH * scale);
+  ctx.setTransform(scale, 0, 0, scale, -bounds.x * scale, -bounds.y * scale);
   const paths = PALETTE.map(() => new Path2D());
-  const centers = centersFor(radius);
-  // Slightly oversized hexagons hide the seams anti-aliasing leaves.
-  const s = 1.04;
-  const dx = (SQRT3 / 2) * s;
-  centers.forEach(([x, y], i) => {
+  // Slightly oversized tiles hide the seams anti-aliasing leaves.
+  const grow = 1.04;
+  for (let i = 0; i < colors.length; i++) {
     const path = paths[colors[i]];
-    path.moveTo(x + dx, y - s / 2);
-    path.lineTo(x + dx, y + s / 2);
-    path.lineTo(x, y + s);
-    path.lineTo(x - dx, y + s / 2);
-    path.lineTo(x - dx, y - s / 2);
-    path.lineTo(x, y - s);
+    const x = centers[2 * i];
+    const y = centers[2 * i + 1];
+    path.moveTo(x + outline[0] * grow, y + outline[1] * grow);
+    for (let c = 2; c < outline.length; c += 2) {
+      path.lineTo(x + outline[c] * grow, y + outline[c + 1] * grow);
+    }
     path.closePath();
-  });
+  }
   paths.forEach((path, color) => {
     ctx.fillStyle = PALETTE[color];
     ctx.fill(path);
@@ -168,7 +177,7 @@ function addItem(picture, result) {
   const card = document.createElement('div');
   card.className = 'card';
   const canvas = document.createElement('canvas');
-  draw(canvas, picture.radius, result.colors, settings.thumb);
+  draw(canvas, layoutFor(picture), result.colors, settings.thumb);
   const index = items.length;
   canvas.addEventListener('click', () => openViewer(index));
   const meta = document.createElement('div');
@@ -249,7 +258,16 @@ function reset() {
   }
 }
 
+// Shows the size control that fits the shape: radius for hexagons, rows
+// for the shapes made of square tiles.
+function showSizeControl() {
+  const hexagon = $('shape').value === 'hexagon';
+  $('radiusLabel').hidden = !hexagon;
+  $('rowsLabel').hidden = hexagon;
+}
+
 function applyControls() {
+  showSizeControl();
   settings = readControls();
   $('minEntropyValue').textContent = settings.minEntropy.toFixed(2);
   const params = new URLSearchParams();
@@ -296,8 +314,10 @@ function openViewer(index) {
 
 function showCurrent() {
   const item = items[current];
-  const width = Math.min(innerWidth - 24, (innerHeight - 110) * 1.15);
-  draw($('big'), item.picture.radius, item.colors, width);
+  const layout = layoutFor(item.picture);
+  const aspect = layout.bounds.width / layout.bounds.height;
+  const width = Math.min(innerWidth - 24, (innerHeight - 110) * aspect);
+  draw($('big'), layout, item.colors, width);
   $('big').style.width = `${width}px`;
   $('info').textContent = `#${item.picture.seed} · interest ` +
     `${item.entropy.toFixed(2)} · ${current + 1}/${items.length}`;
@@ -372,5 +392,7 @@ document.addEventListener('keydown', (e) => {
 
 // ---- Start -------------------------------------------------------------------
 
+// All but the last, which has no next Fibonacci number for the width.
+for (const rows of FIBONACCI.slice(0, -1)) $('rows').add(new Option(rows, rows));
 writeControls(settings);
 applyControls();

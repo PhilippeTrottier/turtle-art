@@ -16,6 +16,7 @@
 #include "art.h"
 #include "grid.h"
 #include "grid_stats.h"
+#include "layout.h"
 #include "palette.h"
 #include "tile.h"
 #include "turtle.h"
@@ -45,6 +46,44 @@ val Generate(const turtle_art::ArtSettings& settings) {
   return result;
 }
 
+// Returns where the tiles of the grid `settings` describe go, as a
+// JavaScript object
+//   {centers: Float32Array, outline: Float32Array, bounds: {x, y, width,
+//    height}}
+// where centers holds x, y for each tile in Grid::Tiles() order, outline
+// holds x, y for each corner of one tile centered on {0, 0}, and bounds is
+// the picture's box (see layout.h). The page draws with these alone.
+val Layout(const turtle_art::ArtSettings& settings) {
+  const turtle_art::Grid grid = turtle_art::MakeGrid(settings);
+  std::vector<float> centers;
+  for (const turtle_art::Tile tile : grid.Tiles()) {
+    const turtle_art::Point center = turtle_art::TileCenter(grid, tile);
+    centers.push_back(static_cast<float>(center.x));
+    centers.push_back(static_cast<float>(center.y));
+  }
+  std::vector<float> outline;
+  for (const turtle_art::Point corner : turtle_art::TileOutline(grid)) {
+    outline.push_back(static_cast<float>(corner.x));
+    outline.push_back(static_cast<float>(corner.y));
+  }
+  const turtle_art::Box box = turtle_art::PictureBounds(grid);
+  val bounds = val::object();
+  bounds.set("x", box.x);
+  bounds.set("y", box.y);
+  bounds.set("width", box.width);
+  bounds.set("height", box.height);
+  val result = val::object();
+  // As in Generate(): copy each vector into an array JavaScript owns.
+  result.set("centers", val::global("Float32Array")
+                            .new_(emscripten::typed_memory_view(
+                                centers.size(), centers.data())));
+  result.set("outline", val::global("Float32Array")
+                            .new_(emscripten::typed_memory_view(
+                                outline.size(), outline.data())));
+  result.set("bounds", bounds);
+  return result;
+}
+
 // Returns the picture for `settings` as SVG text (for downloading).
 std::string Svg(const turtle_art::ArtSettings& settings) {
   return turtle_art::MakeArt(settings);
@@ -66,6 +105,9 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
   emscripten::enum_<turtle_art::EdgeMode>("EdgeMode")
       .value("stop", turtle_art::EdgeMode::kStop)
       .value("wrap", turtle_art::EdgeMode::kWrap);
+  emscripten::enum_<turtle_art::GridShape>("GridShape")
+      .value("hexagon", turtle_art::GridShape::kHexagon)
+      .value("rectangle", turtle_art::GridShape::kRectangle);
   emscripten::enum_<turtle_art::PaintMode>("PaintMode")
       .value("turtle", turtle_art::PaintMode::kTurtleColor)
       .value("cycle", turtle_art::PaintMode::kCycle);
@@ -74,12 +116,16 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
   emscripten::value_object<turtle_art::ArtSettings>("ArtSettings")
       .field("seed", &turtle_art::ArtSettings::seed)
       .field("steps", &turtle_art::ArtSettings::steps)
+      .field("shape", &turtle_art::ArtSettings::shape)
       .field("radius", &turtle_art::ArtSettings::radius)
+      .field("width", &turtle_art::ArtSettings::width)
+      .field("height", &turtle_art::ArtSettings::height)
       .field("edgeMode", &turtle_art::ArtSettings::edge_mode)
       .field("paintCount", &turtle_art::ArtSettings::paint_count)
       .field("historyLength", &turtle_art::ArtSettings::history_length)
       .field("paintMode", &turtle_art::ArtSettings::paint_mode);
   emscripten::function("generate", &Generate);
+  emscripten::function("layout", &Layout);
   emscripten::function("svg", &Svg);
   emscripten::function("palette", &Palette);
 }

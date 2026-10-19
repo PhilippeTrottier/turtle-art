@@ -26,6 +26,7 @@
       display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
     }
     header label { display: flex; gap: 4px; align-items: center; color: var(--muted); }
+    header label[hidden] { display: none; }
     header input[type=number] { width: 6.5em; }
     header select, header input, header button { font: inherit; }
     #status { color: var(--muted); margin-left: auto; }
@@ -71,7 +72,17 @@
     </label>
     <label>colors <input id="colors" type="number" min="1" max="8"></label>
     <label>history <input id="history" type="number" min="1" max="6"></label>
-    <label>radius <input id="radius" type="number" min="1" max="150"></label>
+    <label title="Hexagon: hex tiles. Golden rectangle and square: square tiles.">shape
+      <select id="shape">
+        <option value="hexagon">hexagon</option>
+        <option value="golden">golden rectangle</option>
+        <option value="square">square</option>
+      </select>
+    </label>
+    <label id="radiusLabel">radius <input id="radius" type="number" min="1" max="150"></label>
+    <label id="rowsLabel" title="Rows of square tiles, a Fibonacci number. A golden rectangle's width is the next Fibonacci number (e.g. 21 rows by 34 columns), close to the golden ratio.">rows
+      <select id="rows"></select>
+    </label>
     <label>steps <input id="steps" type="number" min="1" max="200000" step="1000"></label>
     <label>from seed <input id="start" type="number" min="0" max="4294967295"></label>
     <button id="random" title="Start from a random seed (r)">🎲</button>
