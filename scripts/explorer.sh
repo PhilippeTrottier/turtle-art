@@ -15,8 +15,11 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
 
-if [[ -z "${EMSDK:-}" ]]; then
-  echo "error: EMSDK is not set; install the Emscripten SDK (see README)" >&2
+# The wasm preset finds Emscripten through EMSDK; default to ~/emsdk.
+export EMSDK="${EMSDK:-$HOME/emsdk}"
+if [[ ! -d "$EMSDK/upstream/emscripten" ]]; then
+  echo "error: Emscripten SDK not found at $EMSDK; install it or set EMSDK" \
+       "(see README)" >&2
   exit 1
 fi
 
@@ -37,6 +40,8 @@ if [[ -z "$python" ]]; then
   exit 1
 fi
 
-echo "serving http://localhost:8001/ (Ctrl+C to stop)"
+# PORT lets a launcher (like Claude Code's preview) choose the port.
+port="${PORT:-8001}"
+echo "serving http://localhost:$port/ (Ctrl+C to stop)"
 # `exec` replaces this script with the server, so stopping it ends both.
-exec "$python" -m http.server 8001 --bind 127.0.0.1 --directory build/wasm/web
+exec "$python" -m http.server "$port" --bind 127.0.0.1 --directory build/wasm/web

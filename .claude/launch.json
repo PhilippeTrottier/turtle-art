@@ -12,6 +12,18 @@
       "runtimeExecutable": "bash",
       "runtimeArgs": ["scripts/make-gallery.sh", "--serve"],
       "port": 8000
+    },
+    {
+      "name": "explorer-windows",
+      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "runtimeArgs": ["scripts/explorer.sh"],
+      "port": 8001
+    },
+    {
+      "name": "explorer",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["scripts/explorer.sh"],
+      "port": 8001
     }
   ]
 }
