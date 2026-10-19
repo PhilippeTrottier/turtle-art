@@ -389,7 +389,7 @@ decisions go here too; there is no separate list of open questions.
   (`ToAnimatedSvg`). It plays in any browser, also as a plain `<img>`, which
   is how the explorer's hex screensaver shows it. `--hz 0` (the default) gives the
   still picture, unchanged. The screensaver's 600 steps at 10 Hz take exactly
-  its 30-second period.
+  its one-minute period.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
