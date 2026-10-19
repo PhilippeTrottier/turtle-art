@@ -45,8 +45,9 @@ Run Walked(const ArtSettings& settings) {
 
 Grid RunArt(const ArtSettings& settings) { return Walked(settings).grid; }
 
-std::vector<std::uint8_t> MakePng(const ArtSettings& settings) {
-  return ToPng(Walked(settings).grid);
+std::vector<std::uint8_t> MakePng(const ArtSettings& settings,
+                                  int pixels_per_tile) {
+  return ToPng(Walked(settings).grid, pixels_per_tile);
 }
 
 std::string MakeArt(const ArtSettings& settings) {

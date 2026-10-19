@@ -368,7 +368,7 @@ function showCurrent() {
   $('info').textContent = `#${item.picture.seed} · interest ` +
     `${item.entropy.toFixed(2)} · ${current + 1}/${items.length}`;
   $('fav').textContent = isFavorite(item.picture) ? '★' : '☆';
-  $('downloadPng').hidden = !hasPng(item.picture);
+  $('pngButtons').hidden = !hasPng(item.picture);
   $('command').textContent = commandOf(item.picture);
   // Keep more pictures coming when browsing near the end.
   if (current >= items.length - 5) requestMore();
@@ -412,11 +412,14 @@ function downloadCurrent() {
 // Only square tiles map exactly onto pixels, so hexagons have no PNG.
 const hasPng = (p) => shapeOf(p) !== 'hexagon';
 
-function downloadPngCurrent() {
+// Saves a PNG of the current picture, each tile `scale` x `scale` pixels.
+function downloadPngCurrent(scale = 1) {
   const p = items[current].picture;
   if (!hasPng(p)) return;
-  saveFile(new Blob([art.png(toArtSettings(p))], { type: 'image/png' }),
-           `turtle-art-${p.seed}.png`);
+  const name = scale === 1 ? `turtle-art-${p.seed}.png`
+                           : `turtle-art-${p.seed}-${scale}x.png`;
+  saveFile(new Blob([art.png(toArtSettings(p), scale)], { type: 'image/png' }),
+           name);
 }
 
 function copyCurrent() {
@@ -427,7 +430,10 @@ $('prev').addEventListener('click', () => step(-1));
 $('next').addEventListener('click', () => step(1));
 $('fav').addEventListener('click', favoriteCurrent);
 $('download').addEventListener('click', downloadCurrent);
-$('downloadPng').addEventListener('click', downloadPngCurrent);
+for (const button of $('pngButtons').querySelectorAll('button')) {
+  button.addEventListener('click',
+                          () => downloadPngCurrent(Number(button.dataset.scale)));
+}
 $('copy').addEventListener('click', copyCurrent);
 $('close').addEventListener('click', closeViewer);
 $('viewer').addEventListener('click', (e) => {
@@ -589,7 +595,7 @@ document.addEventListener('keydown', (e) => {
   }
   const actions = {
     ArrowLeft: () => step(-1), ArrowRight: () => step(1),
-    f: favoriteCurrent, d: downloadCurrent, p: downloadPngCurrent,
+    f: favoriteCurrent, d: downloadCurrent, p: () => downloadPngCurrent(),
     c: copyCurrent, Escape: closeViewer,
   };
   if (actions[e.key]) {

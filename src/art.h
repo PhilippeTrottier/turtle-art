@@ -53,9 +53,11 @@ Grid RunArt(const ArtSettings& settings);
 // when settings.hz is more than 0.
 std::string MakeArt(const ArtSettings& settings);
 
-// Returns the picture for the settings as a pixel-perfect PNG image (see
-// ToPng). The settings must describe a rectangle grid.
-std::vector<std::uint8_t> MakePng(const ArtSettings& settings);
+// Returns the picture for the settings as a pixel-perfect PNG image, each
+// tile `pixels_per_tile` pixels square (see ToPng). The settings must
+// describe a rectangle grid.
+std::vector<std::uint8_t> MakePng(const ArtSettings& settings,
+                                  int pixels_per_tile = 1);
 
 }  // namespace turtle_art
 

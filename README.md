@@ -233,8 +233,9 @@ Using it:
   normalized: see [Decisions](#decisions).
 - Click a picture (or press `Enter` for the first one) to view it large.
   In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `p`
-  download a PNG with one pixel per tile (square tiles only), `c` copy its
-  `turtle-art` command, `Esc` close.
+  download a PNG with one pixel per tile (square tiles only; the **PNG 2×**
+  and **PNG 3×** buttons make each tile 2 x 2 or 3 x 3 pixels, still
+  unsmoothed), `c` copy its `turtle-art` command, `Esc` close.
 - **▶ Hex screensaver** (`s`) fills the screen with animated art: a new
   picture every minute, drawn step by step at 10 steps per second from a
   clear grid. Each is a random seed with interest above 0.95, at fixed
@@ -320,7 +321,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
 | `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move), `PaintEvent` and `Walk` (with early stop on loops) |
 | `svg.h`           | `ToSvg`: a grid as an SVG string; `ToAnimatedSvg`: a walk replayed with SMIL |
-| `png.h`           | `ToPng`: a rectangle grid as PNG bytes, one pixel per tile  |
+| `png.h`           | `ToPng`: a rectangle grid as PNG bytes, one (or n x n) pixels per tile |
 | `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk), `MakeArt` (+ SVG) and `MakePng` (+ PNG) |
 | `main.cc`         | Command-line options, writes the SVG or PNG file           |
 
@@ -492,7 +493,10 @@ decisions go here too; there is no separate list of open questions.
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
   unpainted tiles are drawn, so the whole grid always shows.
 - **PNG:** only for square tiles, one pixel per tile, so the file is exact
-  and can be scaled up without blur in any image editor; hexagons have no
+  and can be scaled up without blur in any image editor (the explorer also
+  offers 2 x 2 and 3 x 3 pixels per tile, `ToPng`'s `pixels_per_tile`, for
+  viewers that smooth when enlarging; the command line has no option for
+  it until someone needs one); hexagons have no
   pixel-perfect form and stay SVG-only. It is a palette PNG at 4 bits per
   pixel, since 9 colors fit in 16: measured 2.1 to 5.1 times smaller than
   plain RGB on five pictures (e.g. 610 x 987: 1,536 bytes against 3,806),

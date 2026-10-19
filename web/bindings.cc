@@ -114,10 +114,11 @@ std::string Svg(const turtle_art::ArtSettings& settings) {
 }
 
 // Returns the picture for `settings`, which must be a rectangle grid, as a
-// pixel-perfect PNG (one pixel per tile, see png.h) in a Uint8Array, for
-// downloading.
-val Png(const turtle_art::ArtSettings& settings) {
-  const std::vector<std::uint8_t> png = turtle_art::MakePng(settings);
+// pixel-perfect PNG (each tile `pixels_per_tile` pixels square, see png.h)
+// in a Uint8Array, for downloading.
+val Png(const turtle_art::ArtSettings& settings, int pixels_per_tile) {
+  const std::vector<std::uint8_t> png =
+      turtle_art::MakePng(settings, pixels_per_tile);
   return val::global("Uint8Array")
       .new_(emscripten::typed_memory_view(png.size(), png.data()));
 }
