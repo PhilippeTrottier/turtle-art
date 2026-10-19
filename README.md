@@ -2,14 +2,15 @@
 
 Procedural art made by a turtle walking on a hexagonal grid.
 
-> **Status:** v1 works end to end on Windows/MSVC. Open questions and
-> assumptions from building it are in [QUESTIONS.md](QUESTIONS.md); the
-> Linux/macOS presets have not been run yet.
+> **Status:** the command-line program, the gallery and the web explorer
+> work on Windows/MSVC. The Linux/macOS presets have not been run yet. Open
+> questions and assumptions are in [QUESTIONS.md](QUESTIONS.md).
 
 ## What it does
 
 A turtle walks on a hexagon-shaped grid of hexagonal tiles, paints them, and
-turns according to a rule. The painted grid is written out as an SVG image.
+turns according to a rule. The painted grid is written out as an SVG image,
+or browsed by the thousand in the [web explorer](#web-explorer).
 
 ```
 turtle-art --seed 42 --steps 10000 --radius 50 --out art.svg
@@ -38,9 +39,11 @@ earlier if the next move would leave the grid; with `--edge wrap` the move
 comes back in on the opposite side of the hexagon instead.
 
 Note: a turtle that only turns by 60° cannot come back to a tile in fewer than
-6 moves, so with the default history the two previous tiles always still
-hold the colors the turtle just painted. Only the tile it stands on can hold an older color. That one
-tile is how the grid feeds back into the walk, as in
+6 moves (except on small wrapping grids, where wrapping around can bring it
+back sooner). So the previous tiles
+it senses (at most 5) still hold the colors it just painted, and only the
+tile it stands on can hold an older color. That one tile is how the grid
+feeds back into the walk, as in
 [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
 
 ### Colors
@@ -82,7 +85,8 @@ tile is how the grid feeds back into the walk, as in
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
 `--help` lists them too. The default seed is one whose turtle covers a large
-area; most seeds loop on a few dozen tiles (see QUESTIONS.md).
+area; with `--edge stop`, most seeds walk off the edge or loop on a few
+tiles within a few hundred steps (see QUESTIONS.md).
 
 ## Building and testing
 
@@ -95,6 +99,8 @@ You need:
 - [vcpkg](https://learn.microsoft.com/vcpkg/get_started/get-started), with the
   `VCPKG_ROOT` environment variable pointing to it. CMake installs the
   packages listed in `vcpkg.json` on the first configure.
+- Optional: bash (Git Bash on Windows) and Python 3 for the scripts in
+  `scripts/`, and the Emscripten SDK for the [web explorer](#web-explorer).
 
 Pick the preset for your platform (`msvc`, `gcc` or `clang`) and run the
 commands below. On Windows, run them from a **Developer PowerShell for VS
@@ -120,9 +126,9 @@ To render about 70 sample pictures and a page showing them in themed tabs
 (highlights, stop vs wrap, grid size, colors, history, common endings), run
 `scripts/make-gallery.sh` (bash; Git Bash on Windows) after building, then
 open `gallery/demo.html`. The samples are listed in the script, one
-`sample` line each, so adding one is a one-line change. Add `--serve` to also serve the gallery at
-<http://localhost:8000/demo.html> (needs Python 3), for browsers that will
-not open local files. `.claude/launch.json` runs the same thing for Claude
+`sample` line each, so adding one is a one-line change. Add `--serve` to also
+serve the gallery at <http://localhost:8000/demo.html> (needs Python 3), for
+browsers that will not open local files. `.claude/launch.json` runs the same thing for Claude
 Code's built-in browser; on Windows it calls Git Bash by its full path,
 because plain `bash` there may be WSL's, which cannot write Windows paths.
 
@@ -134,17 +140,21 @@ HTML/JavaScript front end (`web/`). It needs no server-side code; any static
 web server works.
 
 One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
-`EMSDK` at it (the script also looks in `~/emsdk` by itself):
+`EMSDK` at it (the script also looks in `~/emsdk` by itself). Emscripten is a
+compiler toolchain, like MSVC or GCC, so vcpkg does not install it; vcpkg
+expects it to be installed already. Use the version the explorer is tested
+with, **6.0.12**, so everyone builds the same thing:
 
 ```bash
 git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
 ```
 
 ```bash
-~/emsdk/emsdk install latest && ~/emsdk/emsdk activate latest
+~/emsdk/emsdk install 6.0.12 && ~/emsdk/emsdk activate 6.0.12
 ```
 
-(On Windows, run `emsdk.bat` with the same arguments.) Then build and serve
+(On Windows, run `emsdk.bat` with the same arguments.) The web build needs
+no packages from vcpkg. Then build and serve
 it at <http://localhost:8001/> (needs Python 3):
 
 ```bash
@@ -178,12 +188,13 @@ that decides what a picture looks like stays in C++.
   checks in `.clang-tidy`. Any finding fails the build. CMake finds
   clang-tidy on the `PATH`, or next to MSVC (Visual Studio ships it in
   `VC\Tools\Llvm\x64\bin`). To build without it, configure with
-  `-DTURTLE_ART_CLANG_TIDY=OFF`.
+  `-DTURTLE_ART_CLANG_TIDY=OFF`. The `wasm` preset does that, so
+  `web/bindings.cc` is formatted but not linted.
 - **clang-format** applies the Google style from `.clang-format`. Run it on
   the files you changed before committing:
 
   ```bash
-  clang-format -i src/*.h src/*.cc tests/*.cc
+  clang-format -i src/*.h src/*.cc tests/*.cc web/*.cc
   ```
 
   On Windows it is not on the `PATH` by default; use the copy at
@@ -281,7 +292,8 @@ These are key; they take priority over cleverness and over features.
 | Packages         | vcpkg, manifest mode (`vcpkg.json`)                           |
 | Unit tests       | GoogleTest                                                    |
 | Command line     | CLI11                                                         |
-| Web explorer     | Emscripten + Embind; plain HTML/JavaScript, no framework      |
+| Web explorer     | Emscripten 6.0.12 + Embind; plain HTML/JavaScript, no framework |
+| Scripts          | bash, plus Python 3's `http.server` to serve pages            |
 | Style            | [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) |
 | Format / lint    | clang-format and clang-tidy, configs committed                |
 | License          | MIT                                                           |
@@ -292,10 +304,16 @@ Style notes that follow from the Google guide:
   (`std::optional`, or a small result type).
 - One exception to that, kept to one place: CLI11 reports parse errors by
   throwing, so `main` catches them and turns them into an exit code.
+- Preconditions (a tile must be on the grid, a count in range) are checked
+  with `assert`, which stops Debug builds and costs nothing in Release.
+- Running out of memory ends the program. Where clang-tidy cannot see that
+  (`main`, and `Grid`'s move constructor with MSVC's `std::map`), a
+  `NOLINT(bugprone-exception-escape)` says so, with a comment explaining why.
 - Files are `snake_case.h` / `snake_case.cc`.
 
-## Out of scope for v1
+## Out of scope (for now)
 
 - High-performance optimisation (SIMD/SSE, multithreading, cache tuning, …).
 - Live animation of the walk (the explorer shows finished pictures).
-- User-written rule tables; v1 rules come from a seed.
+- User-written rule tables; rules come from a seed.
+- Favorites shared across browsers or people (they live in one browser).

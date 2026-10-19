@@ -176,3 +176,19 @@ README or the code, and the entry is deleted.
 36. **Note:** `scripts/explorer.sh` uses `PORT` if set (Claude Code's
     preview picks a free port), else 8001; and falls back to `~/emsdk`
     when `EMSDK` is unset.
+
+## Process audit (after the explorer)
+
+37. **Finding:** `web/bindings.cc` had not been run through clang-format
+    (the documented command only covered `src/` and `tests/`). Fixed, and
+    the command now includes `web/*.cc`.
+38. **Assumption:** Emscripten is pinned by documentation only (README:
+    `emsdk install 6.0.12`). Nothing in the build checks the version. A
+    CMake check (warn if `EMSCRIPTEN_VERSION` differs) would enforce it;
+    worth adding?
+39. **Not verified:** "every commit builds and passes its tests". I built
+    and tested at each step, but never re-checked every commit from a clean
+    checkout, and a few commits were larger than ideal (the palette/history
+    refactor touched 17 files; the explorer's first commit added all of
+    `web/`). A script that checks out each commit and builds it would
+    verify the history; worth running?
