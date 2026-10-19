@@ -35,11 +35,16 @@
     {
       "name": "wasm",
       "displayName": "Web explorer, WebAssembly via Emscripten (any OS)",
-      "description": "Needs the Emscripten SDK, with EMSDK pointing to it. No vcpkg: the web build has no dependencies. Release, since it is for browsing at speed. clang-tidy is off: the native presets already lint the shared code.",
+      "description": "Needs the Emscripten SDK, with EMSDK pointing to it. vcpkg's wasm32-emscripten triplet builds the packages (GoogleTest) for WebAssembly and hands over to Emscripten's toolchain. Release, since the explorer is for browsing at speed. clang-tidy is off: the native presets already lint the shared code.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "TURTLE_ART_CLANG_TIDY": "OFF" }
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+        "CMAKE_BUILD_TYPE": "Release",
+        "TURTLE_ART_CLANG_TIDY": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -56,6 +61,7 @@
     },
     { "name": "msvc", "inherits": "base", "configurePreset": "msvc" },
     { "name": "gcc", "inherits": "base", "configurePreset": "gcc" },
-    { "name": "clang", "inherits": "base", "configurePreset": "clang" }
+    { "name": "clang", "inherits": "base", "configurePreset": "clang" },
+    { "name": "wasm", "inherits": "base", "configurePreset": "wasm" }
   ]
 }

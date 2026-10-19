@@ -15,10 +15,17 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$repo_root"
 
-# The wasm preset finds Emscripten through EMSDK; default to ~/emsdk.
+# The wasm preset finds Emscripten through EMSDK and vcpkg through
+# VCPKG_ROOT; default to ~/emsdk and ~/vcpkg.
 export EMSDK="${EMSDK:-$HOME/emsdk}"
+export VCPKG_ROOT="${VCPKG_ROOT:-$HOME/vcpkg}"
 if [[ ! -d "$EMSDK/upstream/emscripten" ]]; then
   echo "error: Emscripten SDK not found at $EMSDK; install it or set EMSDK" \
+       "(see README)" >&2
+  exit 1
+fi
+if [[ ! -d "$VCPKG_ROOT" ]]; then
+  echo "error: vcpkg not found at $VCPKG_ROOT; install it or set VCPKG_ROOT" \
        "(see README)" >&2
   exit 1
 fi
