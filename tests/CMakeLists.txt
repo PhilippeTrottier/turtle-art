@@ -6,6 +6,7 @@ add_executable(turtle_art_tests
   art_test.cc
   color_test.cc
   direction_test.cc
+  grid_stats_test.cc
   grid_test.cc
   hex_test.cc
   random_rules_test.cc

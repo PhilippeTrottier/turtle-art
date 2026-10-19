@@ -4,6 +4,7 @@ add_library(turtle_art_lib
   color.cc
   direction.cc
   grid.cc
+  grid_stats.cc
   hex.cc
   random_rules.cc
   rule_table.cc
