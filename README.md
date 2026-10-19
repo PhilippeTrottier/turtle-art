@@ -233,14 +233,17 @@ Using it:
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
 
-How the page works: `app.js` asks the C++ module (`web/bindings.cc`) for
-each picture's tile colors (`generate`), where its tiles go (`layout`) and,
-for downloads and the screensaver, its SVG (`svg`); it only draws and
-handles input. Its sections, in order: settings (mirrored in the URL),
-favorites, drawing, the grid of thumbnails, the large viewer, the hex
-screensaver, keys. Thumbnails and favorites are generated a few
-milliseconds per animation frame, so the page stays responsive while they
-appear.
+How the page works: the C++ module (`web/bindings.cc`) is loaded twice.
+`worker.js` runs one copy on a background thread (a Web Worker) and
+generates every thumbnail and favorite: each picture's tile colors and
+interest score (`generate`). `app.js` runs on the page with the other copy,
+for what is quick or asked for: where tiles go (`layout`), SVGs for
+downloads and the screensaver (`svg`), and the screensaver's seed search.
+So a picture with many steps never freezes scrolling or clicks; the page
+only draws. `pictures.js`, shared by both, says what a picture is (a seed
+plus the knobs) and turns it into C++ settings. `app.js`'s sections, in
+order: settings (mirrored in the URL), favorites, drawing, the grid of
+thumbnails, the large viewer, the hex screensaver, keys.
 
 The page itself (`index.html`, `app.js`) is not unit tested; keep it small.
 Everything that decides what a picture looks like stays in C++.
@@ -278,7 +281,7 @@ Everything that decides what a picture looks like stays in C++.
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
 | `scripts/`           | `explorer.sh`: builds and serves the web explorer |
 | `.claude/launch.json`| Lets Claude Code's built-in browser start the explorer |
-| `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html` and `app.js` |
+| `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html`, `app.js` (the page), `worker.js` (generates pictures in the background), `pictures.js` (shared by both) |
 
 ### Code map
 
@@ -466,6 +469,14 @@ decisions go here too; there is no separate list of open questions.
 - **Web page:** plain HTML/JavaScript, not unit tested, so it holds no
   picture logic. Favorites live in the browser's localStorage, per web
   address, so the explorer always uses port 8001.
+- **Background generation:** thumbnails and favorites are generated in a Web
+  Worker, so the page never waits on C++. One picture is one uninterruptible
+  call (about 20 ms at 100,000 steps, 38 ms at 200,000), which on the page
+  thread froze it for 60 ms and more at a time; now no task on the page
+  thread takes 50 ms. The page keeps 2 requests in flight and drops answers
+  from before a settings change. The screensaver's search (600 steps,
+  under a millisecond per seed) and on-demand SVGs stay on the page thread.
+  This is for responsiveness, not speed: generation is still one thread.
 - **History:** past commits were not re-verified from clean checkouts; each
   was built and tested when made. CI will check future ones once the
   repository is on GitHub.
@@ -488,7 +499,8 @@ every picture for every seed.
    lives in `layout.cc`; the page has none of its own.
 4. **Settings:** each `ArtSettings` field appears in `MakeGrid` or `RunArt`,
    `main.cc`, the options table above, `web/bindings.cc` (`value_object`) and
-   `web/app.js` (`DEFAULTS`, `pictureOf`, `toArtSettings`, `commandOf`).
+   `web/app.js` (`DEFAULTS`, `pictureOf`) and `web/pictures.js`
+   (`toArtSettings`, `commandOf`).
    Adding a knob means touching all of them, plus tests in
    `tests/art_test.cc`.
 
