@@ -168,6 +168,7 @@ let settings = settingsFromHash();
 let showingFavorites = false;
 let items = [];        // {picture, colors, entropy, card} in display order.
 let nextSeed = 0;
+let nextFavorite = 0;  // In the favorites view: the next one to show.
 let scanned = 0;
 let target = 0;
 let pumping = false;
@@ -203,37 +204,59 @@ function addItem(picture, result) {
 
 function updateStatus() {
   $('status').textContent = showingFavorites
-    ? `${items.length} favorites`
+    ? `${items.length} of ${favorites.length} favorites`
     : `seeds ${settings.start}–${nextSeed - 1}: showing ${items.length} of ${scanned}`;
 }
 
+// Whether more pictures can come: more favorites to show, or seeds left.
+function hasMore() {
+  return showingFavorites ? nextFavorite < favorites.length
+                          : nextSeed <= 0xffffffff;
+}
+
+// Generates and shows one more picture: the next favorite, or the next seed
+// if it is interesting enough.
+function addNext() {
+  if (showingFavorites) {
+    const picture = favorites[nextFavorite++];
+    addItem(picture, art.generate(toArtSettings(picture)));
+    return;
+  }
+  const picture = pictureOf(settings, nextSeed++);
+  scanned++;
+  const result = art.generate(toArtSettings(picture));
+  if (result.entropy >= settings.minEntropy) addItem(picture, result);
+}
+
 // Generates pictures for a few milliseconds per frame until `target` are
-// shown, so the page stays responsive.
+// shown, so the page stays responsive and pictures appear as they are made.
 function pump(id) {
   if (id !== runId) return;
   const t0 = performance.now();
-  while (items.length < target && nextSeed <= 0xffffffff &&
+  while (items.length < target && hasMore() &&
          performance.now() - t0 < FRAME_BUDGET) {
-    const picture = pictureOf(settings, nextSeed++);
-    scanned++;
-    const result = art.generate(toArtSettings(picture));
-    if (result.entropy >= settings.minEntropy) addItem(picture, result);
+    addNext();
   }
   updateStatus();
-  if (items.length < target && nextSeed <= 0xffffffff) {
+  if (items.length < target && hasMore()) {
     requestAnimationFrame(() => pump(id));
   } else {
     pumping = false;
   }
 }
 
-function requestMore() {
-  if (showingFavorites) return;
-  target = items.length + BATCH;
+// Starts the generating loop, unless it is already running.
+function startPump() {
   if (!pumping) {
     pumping = true;
     requestAnimationFrame(() => pump(runId));
   }
+}
+
+function requestMore() {
+  if (showingFavorites) return;  // Favorites all come at once, see reset().
+  target = items.length + BATCH;
+  startPump();
 }
 
 function reset() {
@@ -247,10 +270,11 @@ function reset() {
   $('favoritesButton').classList.toggle('active', showingFavorites);
   $('favoritesButton').textContent = `★ Favorites (${favorites.length})`;
   if (showingFavorites) {
-    for (const picture of favorites) {
-      addItem(picture, art.generate(toArtSettings(picture)));
-    }
+    // The view switches now; favorites then appear one by one.
+    nextFavorite = 0;
+    target = favorites.length;
     updateStatus();
+    startPump();
   } else {
     nextSeed = settings.start;
     scanned = 0;
