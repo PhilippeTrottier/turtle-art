@@ -60,7 +60,10 @@ Each step:
 The run ends after `--steps` steps. With `--edge wrap` (the default) a move
 off the grid comes back in on the opposite side of the grid; with
 `--edge stop` the run ends early instead, when the next move would leave the
-grid.
+grid. It also ends early, with the same picture, once the picture can no
+longer change: when the turtle is back in a state it was in and no tile
+changed color since, it is in a loop that only repeats (see
+[Decisions](#decisions)).
 
 Note: on hexagon tiles, a turtle that only turns by 60° cannot come back to
 a tile in fewer than 6 moves (except on small wrapping grids, where wrapping
@@ -109,7 +112,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | Option     | Meaning                                  | Default          |
 |------------|------------------------------------------|------------------|
 | `--seed`   | Seed for the rule table                  | `1`              |
-| `--steps`  | Maximum number of steps                  | `15000`          |
+| `--steps`  | Maximum number of steps; the walk stops sooner once the picture is final | `15000` |
 | `--radius` | Hexagon grid: radius in tiles            | `15`             |
 | `--width`, `--height` | Rectangle grid of square tiles: columns and rows. Both together, never with `--radius` | (hexagon) |
 | `--edge`   | At the edge: `wrap` around to the opposite side, or `stop` the walk | `wrap` |
@@ -299,7 +302,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
 | `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
-| `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move), `PaintEvent` and `Walk` |
+| `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move), `PaintEvent` and `Walk` (with early stop on loops) |
 | `svg.h`           | `ToSvg`: a grid as an SVG string; `ToAnimatedSvg`: a walk replayed with SMIL |
 | `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
@@ -317,7 +320,7 @@ file, then its test in `tests/`, which shows it in use.
 |---------|-------|
 | `enum class` (scoped enums) | `color.h`, `action.h`, `grid.h` |
 | Plain structs with default member values; designated initializers `{.q = 1}` (C++20) | `tile.h`, `layout.h`; used in `grid.cc` and the tests |
-| Defaulted `operator<=>` ("spaceship", C++20), giving all comparisons | `tile.h` |
+| Defaulted `operator<=>` ("spaceship", C++20), giving all comparisons; defaulted `operator==` on a class | `tile.h`; `turtle.h` |
 | `constexpr`, and `inline constexpr` variables in headers (C++17) | `color.h`, `rule_table.h`, `layout.cc` |
 | `std::array`, `std::vector`, `std::deque`, `std::map`, `std::set` | `grid.cc`, `rule_table.h`, `turtle.h`, `grid.h`, `layout.cc` |
 | `std::optional` for "maybe no value" instead of a sentinel | `grid.h` (`NeighborOf`) |
@@ -449,6 +452,17 @@ decisions go here too; there is no separate list of open questions.
   is how the explorer's hex screensaver shows it. `--hz 0` (the default)
   gives the still picture, unchanged. The screensaver's 600 steps at 10 Hz
   take exactly its one-minute period.
+- **Early stop on loops:** most walks stop changing the picture long before
+  their last step and end in a loop that only repaints tiles with the colors
+  they have (at 160,000 steps on a radius-15 hexagon, 94% of seeds 1-200
+  were already final at 10,000). `Walk` detects that exactly with Brent's
+  cycle detection: one saved turtle state, moved forward after 1, 2, 4, 8,
+  ... steps and reset by any color change; meeting it again means a loop
+  that changes nothing. Pictures are byte-identical with or without it
+  (checked on the reference pictures and two 1,000,000-step seeds). A
+  settling 233 x 144 walk went from 11.3 s to 0.6 s; walks that never loop
+  cost the same as before. In the explorer, a 160,000-step picture went from
+  about 31 ms to 5 ms on average. Animations end once the picture is final.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;

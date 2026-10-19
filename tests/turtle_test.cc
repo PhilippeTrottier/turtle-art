@@ -241,5 +241,38 @@ TEST(TurtleTest, WalkReportsEachPaintInOrder) {
   EXPECT_EQ(painted[1].tile, (Tile{.q = 1, .r = 0}));
 }
 
+TEST(TurtleTest, NewTurtlesAreEqual) { EXPECT_EQ(Turtle(), Turtle()); }
+
+TEST(TurtleTest, TurtleThatMovedDiffers) {
+  Grid grid = Grid::Hexagon(3);
+  Turtle moved;
+  moved.Step(grid, RuleTable());
+  EXPECT_NE(moved, Turtle());
+}
+
+// With rules that never turn, the turtle walks east around a wrapping
+// radius-1 hexagon (7 tiles) forever. After painting all 7 tiles it only
+// repaints them with the same color, so the walk stops long before 1000.
+TEST(TurtleTest, WalkStopsOnceThePictureCannotChange) {
+  Grid grid = Grid::Hexagon(1, EdgeMode::kWrap);
+  Turtle turtle;
+  EXPECT_LT(Walk(turtle, grid, RuleTable(), 1000).size(), 50U);
+}
+
+TEST(TurtleTest, WalkThatStopsEarlyPaintsEveryTileItWould) {
+  Grid grid = Grid::Hexagon(1, EdgeMode::kWrap);
+  Turtle turtle;
+  Walk(turtle, grid, RuleTable(), 1000);
+  EXPECT_EQ(grid.ColorAt(Tile{.q = -1, .r = 1}), Color::kPaint1);
+}
+
+// In cycle mode every visit changes the tile, so there is never a loop that
+// changes nothing, and the walk takes every step.
+TEST(TurtleTest, WalkThatKeepsChangingTakesAllSteps) {
+  Grid grid = Grid::Hexagon(1, EdgeMode::kWrap);
+  Turtle turtle(PaintMode::kCycle);
+  EXPECT_EQ(Walk(turtle, grid, RuleTable(), 1000).size(), 1000U);
+}
+
 }  // namespace
 }  // namespace turtle_art

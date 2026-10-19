@@ -45,13 +45,17 @@ class Turtle {
   // Takes one step: senses the colors of the last rules.history_length()
   // tiles, applies the action `rules` gives for them (changing color cycles
   // through rules.paint_count() paints), paints the current tile as the
-  // paint mode says, and moves one
-  // tile forward, wrapping around if `grid` wraps. If the move would leave a
-  // grid that does not wrap, the turtle stays put and Step returns false;
-  // otherwise it returns true.
+  // paint mode says, and moves one tile forward, wrapping around if `grid`
+  // wraps. If the move would leave a grid that does not wrap, the turtle
+  // stays put and Step returns false; otherwise it returns true.
   //
   // The turtle must be on a tile of `grid`.
   bool Step(Grid& grid, const RuleTable& rules);
+
+  // Two turtles are equal when everything that decides their next steps is:
+  // position, heading, color, paint mode and the tiles they remember.
+  // `= default` (C++20) compares the members in order.
+  friend bool operator==(const Turtle&, const Turtle&) = default;
 
  private:
   PaintMode paint_mode_;
@@ -71,10 +75,16 @@ struct PaintEvent {
   Color color = Color::kUnpainted;
 };
 
-// Makes `turtle` take up to `max_steps` steps on `grid`, stopping early if
-// it reaches the edge of a grid that does not wrap. Returns what each step
-// painted, in order, so its size is the number of steps taken (including
-// the final step at the edge, which still paints). Animations replay it.
+// Makes `turtle` take up to `max_steps` steps on `grid`. It stops early if
+// it reaches the edge of a grid that does not wrap, or once the picture can
+// no longer change: when the turtle is back in a state it was in, with no
+// tile changing color since, the rest of the walk would only repeat that
+// loop forever (see Walk() for how this is detected). Either way the final
+// picture is exactly the one `max_steps` steps would give.
+//
+// Returns what each step painted, in order, so its size is the number of
+// steps taken (including the final step at the edge, which still paints).
+// Animations replay it.
 std::vector<PaintEvent> Walk(Turtle& turtle, Grid& grid, const RuleTable& rules,
                              int max_steps);
 
