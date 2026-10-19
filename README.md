@@ -91,8 +91,8 @@ On square tiles a turtle can come back in 4 moves, so with a history of 5 or
 - The turtle starts with the first palette color; it never paints *unpainted*.
 - *Change color* moves to the next palette color, cycling 1 → 2 → … → N → 1.
 - Two palettes (`--theme`): **light**, colors on off-white (the default),
-  and **dark**, colors on black, with paints brightened where they would
-  vanish on black. The theme only changes how a picture looks, never the
+  and **dark**, calm muted colors (after the Nord palette) on a dark slate.
+  The theme only changes how a picture looks, never the
   walk.
 
 ### The rule table
@@ -133,7 +133,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
-| `--theme`  | Palette: `light` (colors on off-white) or `dark` (colors on black) | `light` |
+| `--theme`  | Palette: `light` (colors on off-white) or `dark` (muted colors on dark slate) | `light` |
 | `--hz`     | Animate the SVG, replaying the walk at this many steps per second; 0 for a still picture | `0` |
 | `--out`    | File to write: an SVG, or a PNG (one pixel per tile; rectangle grids, no `--hz`) when it ends with `.png` | `turtle-art.svg` |
 
@@ -508,8 +508,8 @@ decisions go here too; there is no separate list of open questions.
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** two fixed palettes (`palette.h`), light and dark, shared by
   every output; unpainted tiles are drawn, so the whole grid always shows.
-  The dark palette keeps the light one's hues, but its dark blue (kPaint4)
-  becomes a powder blue, since dark blue vanishes on black.
+  The dark palette is muted on purpose (after Nord, on #20242c rather than
+  pitch black): bright colors on black glowed like neon.
 - **PNG:** only for square tiles, one pixel per tile, so the file is exact
   and can be scaled up without blur in any image editor (the explorer also
   offers 2 x 2 and 3 x 3 pixels per tile, `ToPng`'s `pixels_per_tile`, for

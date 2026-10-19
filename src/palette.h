@@ -27,7 +27,7 @@ using Palette = std::array<Rgb, kMaxPaintCount + 1>;
 // looks, never the walk.
 enum class Theme {
   kLight,  // Colors on off-white, for light pages and print.
-  kDark,   // Colors on black, for dark pages and screens.
+  kDark,   // Muted colors on dark slate, for dark pages and screens.
 };
 
 inline constexpr Palette kLightPalette = {{
@@ -42,18 +42,20 @@ inline constexpr Palette kLightPalette = {{
     {.red = 0xff, .green = 0xd1, .blue = 0x66},  // kPaint8: yellow.
 }};
 
-// The same hues, brightened where they would vanish on black: kPaint4, the
-// light palette's dark blue, becomes a light one.
+// Calm, muted colors on a dark slate rather than pitch black, after the
+// Nord palette (nordtheme.com): its "aurora" and "frost" colors are soft
+// enough to sit side by side without glowing. Each paint keeps its role
+// from the light palette (red, orange, teal, blue, ...).
 inline constexpr Palette kDarkPalette = {{
-    {.red = 0x00, .green = 0x00, .blue = 0x00},  // kUnpainted: black.
-    {.red = 0xef, .green = 0x47, .blue = 0x6f},  // kPaint1: red.
-    {.red = 0xf4, .green = 0xa2, .blue = 0x61},  // kPaint2: orange.
-    {.red = 0x2e, .green = 0xc4, .blue = 0xb6},  // kPaint3: teal.
-    {.red = 0xa8, .green = 0xda, .blue = 0xdc},  // kPaint4: powder blue.
-    {.red = 0x95, .green = 0xd5, .blue = 0xb2},  // kPaint5: sage green.
-    {.red = 0xb3, .green = 0x88, .blue = 0xeb},  // kPaint6: purple.
-    {.red = 0x4c, .green = 0xc9, .blue = 0xf0},  // kPaint7: sky blue.
-    {.red = 0xff, .green = 0xd1, .blue = 0x66},  // kPaint8: yellow.
+    {.red = 0x20, .green = 0x24, .blue = 0x2c},  // kUnpainted: dark slate.
+    {.red = 0xbf, .green = 0x61, .blue = 0x6a},  // kPaint1: dusty rose.
+    {.red = 0xd0, .green = 0x87, .blue = 0x70},  // kPaint2: soft orange.
+    {.red = 0x8f, .green = 0xbc, .blue = 0xbb},  // kPaint3: sea green.
+    {.red = 0x5e, .green = 0x81, .blue = 0xac},  // kPaint4: steel blue.
+    {.red = 0xa3, .green = 0xbe, .blue = 0x8c},  // kPaint5: sage green.
+    {.red = 0xb4, .green = 0x8e, .blue = 0xad},  // kPaint6: mauve.
+    {.red = 0x88, .green = 0xc0, .blue = 0xd0},  // kPaint7: frost blue.
+    {.red = 0xeb, .green = 0xcb, .blue = 0x8b},  // kPaint8: straw yellow.
 }};
 
 // Returns the palette of `theme`. A constexpr function can also run at
