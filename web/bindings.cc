@@ -18,6 +18,7 @@
 #include "grid_stats.h"
 #include "hex.h"
 #include "palette.h"
+#include "turtle.h"
 
 namespace {
 
@@ -65,6 +66,9 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
   emscripten::enum_<turtle_art::EdgeMode>("EdgeMode")
       .value("stop", turtle_art::EdgeMode::kStop)
       .value("wrap", turtle_art::EdgeMode::kWrap);
+  emscripten::enum_<turtle_art::PaintMode>("PaintMode")
+      .value("turtle", turtle_art::PaintMode::kTurtleColor)
+      .value("cycle", turtle_art::PaintMode::kCycle);
   // JavaScript passes ArtSettings as a plain object with these fields; all
   // of them must be present.
   emscripten::value_object<turtle_art::ArtSettings>("ArtSettings")
@@ -73,7 +77,8 @@ EMSCRIPTEN_BINDINGS(turtle_art) {
       .field("radius", &turtle_art::ArtSettings::radius)
       .field("edgeMode", &turtle_art::ArtSettings::edge_mode)
       .field("paintCount", &turtle_art::ArtSettings::paint_count)
-      .field("historyLength", &turtle_art::ArtSettings::history_length);
+      .field("historyLength", &turtle_art::ArtSettings::history_length)
+      .field("paintMode", &turtle_art::ArtSettings::paint_mode);
   emscripten::function("generate", &Generate);
   emscripten::function("svg", &Svg);
   emscripten::function("palette", &Palette);

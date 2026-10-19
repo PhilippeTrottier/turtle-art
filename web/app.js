@@ -9,7 +9,7 @@ const PALETTE = art.palette();
 const SQRT3 = Math.sqrt(3);
 const FAVORITES_KEY = 'turtle-art-favorites';
 const DEFAULTS = {
-  edge: 'wrap', colors: 4, history: 3, radius: 25, steps: 6000, start: 1,
+  edge: 'wrap', paint: 'turtle', colors: 4, history: 3, radius: 25, steps: 6000, start: 1,
   minEntropy: 0.5, thumb: 160,
 };
 const BATCH = 60;          // Pictures added each time the end comes into view.
@@ -19,14 +19,15 @@ const $ = (id) => document.getElementById(id);
 
 // ---- Settings: the controls, mirrored in the URL's #fragment -------------
 
-const controls = ['edge', 'colors', 'history', 'radius', 'steps', 'start',
-                  'minEntropy', 'thumb'];
+const controls = ['edge', 'paint', 'colors', 'history', 'radius', 'steps',
+                  'start', 'minEntropy', 'thumb'];
+const textControls = ['edge', 'paint'];  // The rest are numbers.
 
 function readControls() {
   const s = {};
   for (const name of controls) {
     const value = $(name).value;
-    s[name] = name === 'edge' ? value : Number(value);
+    s[name] = textControls.includes(name) ? value : Number(value);
   }
   return s;
 }
@@ -40,7 +41,8 @@ function settingsFromHash() {
   const s = { ...DEFAULTS };
   for (const name of controls) {
     if (params.has(name)) {
-      s[name] = name === 'edge' ? params.get(name) : Number(params.get(name));
+      const value = params.get(name);
+      s[name] = textControls.includes(name) ? value : Number(value);
     }
   }
   return s;
@@ -49,18 +51,23 @@ function settingsFromHash() {
 // A picture is fully described by its seed plus these knobs.
 function pictureOf(s, seed) {
   return { seed, steps: s.steps, radius: s.radius, edge: s.edge,
-           colors: s.colors, history: s.history };
+           paint: s.paint, colors: s.colors, history: s.history };
 }
+
+// Favorites saved before the paint knob existed have no `paint`; they were
+// made in 'turtle' mode.
+const paintOf = (p) => p.paint ?? 'turtle';
 
 function toArtSettings(p) {
   return { seed: p.seed, steps: p.steps, radius: p.radius,
-           edgeMode: art.EdgeMode[p.edge], paintCount: p.colors,
-           historyLength: p.history };
+           edgeMode: art.EdgeMode[p.edge], paintMode: art.PaintMode[paintOf(p)],
+           paintCount: p.colors, historyLength: p.history };
 }
 
 function commandOf(p) {
   return `turtle-art --seed ${p.seed} --steps ${p.steps} --radius ${p.radius}` +
-         ` --edge ${p.edge} --colors ${p.colors} --history ${p.history}`;
+         ` --edge ${p.edge} --paint ${paintOf(p)} --colors ${p.colors}` +
+         ` --history ${p.history}`;
 }
 
 const keyOf = (p) => commandOf(p);
