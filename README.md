@@ -16,7 +16,11 @@ or browsed by the thousand in the [web explorer](#web-explorer).
 ```
 turtle-art --seed 42 --edge wrap --history 1 --radius 15 --steps 15000 --out art.svg
 turtle-art --seed 47 --width 34 --height 21 --out golden.svg
+turtle-art --seed 1 --radius 9 --steps 300 --history 2 --hz 10 --out animated.svg
 ```
+
+With `--hz`, the SVG animates itself, replaying the walk at that many steps
+per second; without it you get a still picture of the final state.
 
 ### The walk
 
@@ -97,6 +101,7 @@ The edge either stops the walk or wraps around (`--edge`).
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `1` |
+| `--hz`     | Animate the SVG, replaying the walk at this many steps per second; 0 for a still picture | `0` |
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
 `--help` lists them too. Wrapping is the default edge because with
@@ -199,6 +204,11 @@ Using it:
 - Click a picture (or press `Enter` for the first one) to view it large.
   In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `c`
   copy its `turtle-art` command, `Esc` close.
+- **▶ Slideshow** (`s`) shows a new picture every 30 seconds, drawn step by
+  step at 10 steps per second from a clear grid: a random seed with interest
+  above 0.95, at fixed settings (hexagon radius 9, 300 steps, 4 colors,
+  history 2, wrap, turtle). `n` skips to the next picture, `f` favorites
+  the current one, `Esc` exits.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
@@ -257,8 +267,8 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
 | `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
-| `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move) and `Walk` |
-| `svg.h`           | `ToSvg`: a grid as an SVG string                           |
+| `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move), `PaintEvent` and `Walk` |
+| `svg.h`           | `ToSvg`: a grid as an SVG string; `ToAnimatedSvg`: a walk replayed with SMIL |
 | `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
 
@@ -368,6 +378,13 @@ decisions go here too; there is no separate list of open questions.
   sizes, the next Fibonacci number wide for a golden rectangle. On a side
   with an even number of tiles, the center tile is just right of / below the
   middle. Hexagon pictures did not change when rectangles were added.
+- **Animation:** an SVG that animates itself with SMIL (SVG's built-in
+  animation, no script): each tile starts unpainted and gets one `<set>`
+  per time it is painted, switching its color class at step / hz seconds
+  (`ToAnimatedSvg`). It plays in any browser, also as a plain `<img>`, which
+  is how the explorer's slideshow shows it. `--hz 0` (the default) gives the
+  still picture, unchanged. The slideshow's 300 steps at 10 Hz take exactly
+  its 30-second period.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
