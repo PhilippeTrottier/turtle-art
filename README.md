@@ -126,6 +126,52 @@ not open local files. `.claude/launch.json` runs the same thing for Claude
 Code's built-in browser; on Windows it calls Git Bash by its full path,
 because plain `bash` there may be WSL's, which cannot write Windows paths.
 
+### Web explorer
+
+A page for browsing thousands of seeds quickly: the C++ core compiled to
+WebAssembly with [Emscripten](https://emscripten.org/), plus a plain
+HTML/JavaScript front end (`web/`). It needs no server-side code; any static
+web server works.
+
+One-time setup: install the Emscripten SDK, e.g. into `~/emsdk`, and point
+`EMSDK` at it (the script also looks in `~/emsdk` by itself):
+
+```bash
+git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
+```
+
+```bash
+~/emsdk/emsdk install latest && ~/emsdk/emsdk activate latest
+```
+
+(On Windows, run `emsdk.bat` with the same arguments.) Then build and serve
+it at <http://localhost:8001/> (needs Python 3):
+
+```bash
+scripts/explorer.sh
+```
+
+Or build only, with the `wasm` preset: `cmake --preset wasm`, then
+`cmake --build --preset wasm`; the site is `build/wasm/web/`.
+
+Using it:
+
+- The header holds the knobs, a start seed (🎲 or `r` for a random one), a
+  **min interest** filter and the thumbnail size. Settings live in the URL,
+  so a view can be bookmarked or shared.
+- Thumbnails appear seed after seed as you scroll. Each shows its seed and
+  interest score (the color `Entropy`); pictures below the filter are
+  skipped, which hides the many flat fills and tiny loops.
+- Click a picture (or press `Enter` for the first one) to view it large.
+  In the viewer: `←` `→` browse, `f` favorite, `d` download the SVG, `c`
+  copy its `turtle-art` command, `Esc` close.
+- ☆ / `f` saves a favorite in this browser (localStorage). `g` or
+  **★ Favorites** shows them; **Copy as commands** copies them all as
+  `turtle-art` command lines.
+
+The page is not unit tested (see QUESTIONS.md); keep it small. Everything
+that decides what a picture looks like stays in C++.
+
 ### Formatting and linting
 
 - **clang-tidy** runs automatically on every file as it compiles, using the
@@ -153,7 +199,8 @@ because plain `bash` there may be WSL's, which cannot write Windows paths.
 | `CMakeLists.txt`     | Top-level build, shared compiler settings        |
 | `CMakePresets.json`  | Configure/build/test presets per compiler        |
 | `vcpkg.json`         | Package dependencies, pinned by `builtin-baseline` |
-| `scripts/`           | `make-gallery.sh`: renders themed samples and `gallery/demo.html` |
+| `scripts/`           | `make-gallery.sh`: renders themed samples and `gallery/demo.html`; `explorer.sh`: builds and serves the web explorer |
+| `web/`               | The web explorer: `bindings.cc` (C++ → JavaScript via Embind), `index.html` and `app.js` |
 | `QUESTIONS.md`       | Open questions and assumptions awaiting review   |
 
 ### Code map
@@ -165,15 +212,20 @@ Read `src/` in this order; each file uses only the ones above it. Every
 |-------------------|------------------------------------------------------------|
 | `direction.h`     | `Direction`: the 6 hex directions, `TurnLeft`, `TurnRight` |
 | `hex.h`           | `Hex`: axial tile coordinates, `Neighbor`, `DistanceFromCenter` |
-| `color.h`         | `Color`: unpainted plus 4 paints, `NextPaint`              |
-| `grid.h`          | `Grid`: hexagon of tiles of radius R, `Contains`, `ColorAt`, `Paint` |
+| `color.h`         | `Color`: unpainted plus up to 8 paints, `NextPaint`        |
+| `palette.h`       | `kPalette`: the CSS color of each `Color`                  |
+| `grid.h`          | `EdgeMode` and `Grid`: hexagon of radius R, `Tiles`, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
+| `grid_stats.h`    | `ColorCounts` and `Entropy`: how interesting a grid is     |
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
-| `rule_table.h`    | `SensedColors` and `RuleTable`: 3 colors → action          |
-| `random_rules.h`  | `RandomRuleTable(seed)`: same table on every platform      |
+| `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
+| `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
 | `turtle.h`        | `Turtle::Step` (sense, act, paint, move) and `Walk`        |
 | `svg.h`           | `ToSvg`: a grid as an SVG string                           |
-| `art.h`           | `ArtSettings` and `MakeArt`: rules + walk + SVG            |
+| `art.h`           | `ArtSettings`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
+
+`web/bindings.cc` is the web explorer's only C++: it exposes `RunArt`,
+`MakeArt` and the palette to JavaScript.
 
 ## Why this repository exists
 
@@ -229,6 +281,7 @@ These are key; they take priority over cleverness and over features.
 | Packages         | vcpkg, manifest mode (`vcpkg.json`)                           |
 | Unit tests       | GoogleTest                                                    |
 | Command line     | CLI11                                                         |
+| Web explorer     | Emscripten + Embind; plain HTML/JavaScript, no framework      |
 | Style            | [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) |
 | Format / lint    | clang-format and clang-tidy, configs committed                |
 | License          | MIT                                                           |
@@ -244,5 +297,5 @@ Style notes that follow from the Google guide:
 ## Out of scope for v1
 
 - High-performance optimisation (SIMD/SSE, multithreading, cache tuning, …).
-- Live display or animation; v1 only writes SVG files.
+- Live animation of the walk (the explorer shows finished pictures).
 - User-written rule tables; v1 rules come from a seed.

@@ -150,3 +150,29 @@ README or the code, and the entry is deleted.
     most seeds still paint a field of one or two colors, and in seeds 1-100
     only seed 9 (8 colors) spreads tiles evenly. Longer histories (5-6)
     gave the most balanced pictures of any setting.
+
+## Web explorer
+
+31. **Assumption:** explorer defaults are `wrap`, radius 25, 6000 steps,
+    min interest 0.5 (most seeds below that are flat fills or tiny loops).
+    Speed measured in the browser: about 1 ms per seed at radius 12, 2 ms
+    at radius 25, 4 ms at radius 50. WASM pictures match native ones exactly
+    (checked on seed 228's per-color counts).
+32. **Assumption:** the page is plain HTML/JS with no tests and no build
+    step beyond copying; all picture logic stays in C++. Its one piece of
+    duplicated logic is the tile layout (order and centers), mirrored from
+    `Grid::Tiles()` and `svg.cc` with comments pointing at them.
+33. **Assumption:** the `wasm` preset has clang-tidy off, so
+    `web/bindings.cc` is not linted (the shared code is linted by the
+    native presets). Linting it would need Emscripten's headers in
+    clang-tidy's include path.
+34. **Assumption:** favorites live in the browser's localStorage only
+    (per browser, per machine). "Copy as commands" is the way out. A
+    shared/synced store (e.g. a published claude.ai artifact) is possible
+    later.
+35. **Note:** returning `Grid` by value (`RunArt`) needed a commented
+    `NOLINT(bugprone-exception-escape)` on `Grid`: with MSVC, moving a
+    `std::map` can allocate, so the implicit move constructor may throw.
+36. **Note:** `scripts/explorer.sh` uses `PORT` if set (Claude Code's
+    preview picks a free port), else 8001; and falls back to `~/emsdk`
+    when `EMSDK` is unset.
