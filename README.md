@@ -1,6 +1,6 @@
 # turtle-art
 
-Procedural art made by a turtle walking on a hexagonal grid.
+Procedural art made by a turtle walking on a grid of hexagons or squares.
 
 > **Status:** the command-line program and the web explorer work on
 > Windows/MSVC, and the tests pass natively and as WebAssembly. The
@@ -8,18 +8,21 @@ Procedural art made by a turtle walking on a hexagonal grid.
 
 ## What it does
 
-A turtle walks on a hexagon-shaped grid of hexagonal tiles, paints them, and
-turns according to a rule. The painted grid is written out as an SVG image,
+A turtle walks on a grid, paints its tiles, and turns according to a rule.
+The grid is a hexagon of hexagonal tiles (the default) or a rectangle of
+square tiles. The painted grid is written out as an SVG image,
 or browsed by the thousand in the [web explorer](#web-explorer).
 
 ```
 turtle-art --seed 42 --edge wrap --history 1 --radius 15 --steps 15000 --out art.svg
+turtle-art --seed 47 --width 34 --height 21 --out golden.svg
 ```
 
 ### The walk
 
 The turtle has a **position** (a tile), a **heading** (one of the 6 neighbor
-directions) and a **current color**. Each step:
+directions of a hexagon tile, or 4 of a square one) and a **current color**.
+Each step:
 
 1. **Sense** — read the grid colors of the last H tiles visited (`--history`,
    default 1): the tile it stands on and the H − 1 before it. Tiles never
@@ -28,8 +31,8 @@ directions) and a **current color**. Each step:
 2. **Decide** — look up those H colors in the rule table, which gives exactly
    one action:
    - **keep** the heading,
-   - **turn left** 60°,
-   - **turn right** 60°,
+   - **turn left** 60° (90° on square tiles),
+   - **turn right** 60° (90° on square tiles),
    - **change color** to the next color in the palette (wrapping around).
 3. **Paint** the current tile: with the turtle's current color (`--paint
    turtle`, the default), or with the palette color after the tile's own
@@ -38,13 +41,13 @@ directions) and a **current color**. Each step:
 4. **Move** one tile forward along the heading.
 
 The run ends after `--steps` steps. With `--edge wrap` (the default) a move
-off the grid comes back in on the opposite side of the hexagon; with
+off the grid comes back in on the opposite side of the grid; with
 `--edge stop` the run ends early instead, when the next move would leave the
 grid.
 
-Note: a turtle that only turns by 60° cannot come back to a tile in fewer than
-6 moves (except on small wrapping grids, where wrapping around can bring it
-back sooner). So the previous tiles it senses (at most 5) still hold the
+Note: on hexagon tiles, a turtle that only turns by 60° cannot come back to
+a tile in fewer than 6 moves (except on small wrapping grids, where wrapping
+around can bring it back sooner); on square tiles, 4 moves. So the previous tiles it senses (at most 5) still hold the
 colors it just painted, and only the tile it stands on can hold an older
 color. That one tile is how the grid feeds back into the walk, as in
 [Langton's ant](https://en.wikipedia.org/wiki/Langton%27s_ant).
@@ -66,15 +69,21 @@ color. That one tile is how the grid feeds back into the walk, as in
 
 ### The grid
 
-- A **hexagon of radius R** (`--radius`): every tile within R steps of the
-  center. The turtle starts at the center, heading east.
-- Its edge either stops the walk or wraps around (`--edge`). Wrapping uses
-  the hexagon's "mirror centers", so leaving through one side re-enters
-  through the opposite one
-  ([reference](https://www.redblobgames.com/grids/hexagons/#wraparound)).
-- Tiles are addressed with **axial hex coordinates**
+Two shapes, each with its own kind of tile. The turtle starts on the center
+tile, heading east.
+
+- **Hexagon** (the default, `--radius R`): every hexagonal tile within R
+  steps of the center. Tiles are addressed with **axial hex coordinates**
   ([reference](https://www.redblobgames.com/grids/hexagons/)), which keep
-  neighbor and distance math simple.
+  neighbor and distance math simple. Wrapping uses the hexagon's "mirror
+  centers", so leaving through one side re-enters through the opposite one
+  ([reference](https://www.redblobgames.com/grids/hexagons/#wraparound)).
+- **Rectangle** (`--width W --height H`): W columns by H rows of square
+  tiles, addressed by column and row. A square is a rectangle with equal
+  sides. Wrapping makes it a torus: off the right edge comes back on the
+  left, off the top comes back at the bottom.
+
+The edge either stops the walk or wraps around (`--edge`).
 
 ### Command-line options
 
@@ -82,7 +91,8 @@ color. That one tile is how the grid feeds back into the walk, as in
 |------------|------------------------------------------|------------------|
 | `--seed`   | Seed for the rule table                  | `1`              |
 | `--steps`  | Maximum number of steps                  | `15000`          |
-| `--radius` | Grid radius in tiles                     | `15`             |
+| `--radius` | Hexagon grid: radius in tiles            | `15`             |
+| `--width`, `--height` | Rectangle grid of square tiles: columns and rows. Both together, never with `--radius` | (hexagon) |
 | `--edge`   | At the edge: `wrap` around to the opposite side, or `stop` the walk | `wrap` |
 | `--paint`  | Paint with the `turtle`'s color, or `cycle` each tile to its next color | `turtle` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
@@ -176,6 +186,10 @@ explorer. On Windows it calls Git Bash by its full path, because plain
 
 Using it:
 
+- The **shape** is a hexagon (sized by radius), a golden rectangle or a
+  square (both of square tiles, sized by **rows**, a Fibonacci number). A
+  golden rectangle is the next Fibonacci number wide, e.g. 21 rows by 34
+  columns: consecutive Fibonacci numbers approach the golden ratio.
 - The header holds the knobs, a start seed (🎲 or `r` for a random one), a
   **min interest** filter and the thumbnail size. Settings live in the URL,
   so a view can be bookmarked or shared.
@@ -234,22 +248,22 @@ Read `src/` in this order; each file uses only the ones above it. Every
 
 | File              | What it holds                                              |
 |-------------------|------------------------------------------------------------|
-| `direction.h`     | `Direction`: the 6 hex directions, `TurnLeft`, `TurnRight` |
-| `hex.h`           | `Hex`: axial tile coordinates, `Neighbor`, `DistanceFromCenter` |
+| `tile.h`          | `Tile`: a tile's coordinates, `HexDistanceFromCenter`       |
 | `color.h`         | `Color`: unpainted plus up to 8 paints, `NextPaint`        |
 | `palette.h`       | `kPalette`: the CSS color of each `Color`                  |
-| `grid.h`          | `EdgeMode` and `Grid`: hexagon of radius R, `Tiles`, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
+| `grid.h`          | `EdgeMode`, `GridShape` and `Grid`: `Hexagon(radius)` or `Rectangle(width, height)`, `Tiles`, numbered directions, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
+| `layout.h`        | `TileCenter`, `TileOutline`, `PictureBounds`: where tiles go in a picture |
 | `grid_stats.h`    | `ColorCounts` and `Entropy`: how interesting a grid is     |
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
 | `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
 | `random_rules.h`  | `RandomRuleTable(seed, …)`: same table on every platform   |
 | `turtle.h`        | `PaintMode`, `Turtle::Step` (sense, act, paint, move) and `Walk` |
 | `svg.h`           | `ToSvg`: a grid as an SVG string                           |
-| `art.h`           | `ArtSettings`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
+| `art.h`           | `ArtSettings`, `MakeGrid`, `RunArt` (rules + walk) and `MakeArt` (+ SVG) |
 | `main.cc`         | Command-line options, writes the SVG file                  |
 
 `web/bindings.cc` is the web explorer's only C++: it exposes `RunArt`,
-`MakeArt` and the palette to JavaScript.
+`MakeArt`, the layout and the palette to JavaScript.
 
 ## Why this repository exists
 
@@ -346,10 +360,18 @@ decisions go here too; there is no separate list of open questions.
   the 0.6 filter). With `--edge stop` most turtles walk off within a few
   dozen steps, and `--paint cycle` mostly looks like noise, so both are
   opt-in. `RuleTable()` keeps the original 4-color, 3-tile shape for tests.
+- **Grid shapes:** a hexagon of hexagonal tiles, or a rectangle of square
+  tiles (a square is just a rectangle with equal sides; no special code).
+  One turtle walks both: its heading counts left turns from east, and the
+  grid says how many directions there are (6 or 4) and where each leads.
+  The CLI takes any `--width`/`--height`; the explorer offers Fibonacci
+  sizes, the next Fibonacci number wide for a golden rectangle. On a side
+  with an even number of tiles, the center tile is just right of / below the
+  middle. Hexagon pictures did not change when rectangles were added.
 - **Limits:** 1-8 colors and history 1-6, so a rule table has at most
   9^6 = 531,441 entries (`kMaxPaintCount`, `kMaxHistoryLength`).
 - **Pictures:** one fixed palette (`palette.h`) shared by every output;
-  unpainted tiles are drawn, so the whole hexagon always shows.
+  unpainted tiles are drawn, so the whole grid always shows.
 - **Interest score:** color entropy (`grid_stats.h`). It hides flat fills and
   tiny loops well, but cannot tell structure from noise, so it helps less
   with `--paint cycle`, where many seeds look like confetti.
@@ -379,12 +401,15 @@ every picture for every seed.
    in index order, where an index reads the sensed colors as digits in base
    colors + 1, oldest first (`RuleTable::IndexOf`). Guarded by
    `RandomRulesTest.SeedOneStartsWithTurnLeft`.
-2. **Enum orders:** `Action` (its value is the random number), `Direction`
-   (counter-clockwise, so turning is ±1), `Color` (its value is the palette
+2. **Enum and direction orders:** `Action` (its value is the random
+   number), the direction offsets in `grid.cc` (counter-clockwise from east,
+   so turning is ±1), `Color` (its value is the palette
    index, the SVG class `cN` and the byte the explorer receives).
-3. **Tile order and geometry:** `Grid::Tiles()` order and the hexagon layout
-   in `svg.cc` are mirrored in `web/app.js` (`centersFor`).
-4. **Settings:** each `ArtSettings` field appears in `RunArt`, `main.cc`,
+3. **Tile order:** `Grid::Tiles()` order is the order of the colors
+   `generate` and the centers `layout` return to `web/app.js`. All geometry
+   lives in `layout.cc`; the page has none of its own.
+4. **Settings:** each `ArtSettings` field appears in `MakeGrid` or `RunArt`,
+   `main.cc`,
    the options table above, `web/bindings.cc` (`value_object`) and
    `web/app.js` (`DEFAULTS`, `pictureOf`, `toArtSettings`, `commandOf`).
    Adding a knob means touching all of them, plus tests in
