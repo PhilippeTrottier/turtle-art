@@ -50,8 +50,8 @@ std::string Header(const Grid& grid) {
     // The stroke, in the fill color, covers the thin seams that
     // anti-aliasing would otherwise leave between neighboring tiles. In a
     // format pattern, {{ and }} print literal braces.
-    styles +=
-        std::format(".c{}{{fill:{};stroke:{}}}", i, kPalette[i], kPalette[i]);
+    styles += std::format(".c{}{{fill:{};stroke:{}}}", i, CssColor(kPalette[i]),
+                          CssColor(kPalette[i]));
   }
   return std::format(
       "  <defs><polygon id=\"t\" points=\"{}\" stroke-width=\"0.5\"/>"

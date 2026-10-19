@@ -116,8 +116,8 @@ std::string Svg(const turtle_art::ArtSettings& settings) {
 // Returns the palette as a JavaScript array of CSS colors, indexed by Color.
 val Palette() {
   val colors = val::array();
-  for (const std::string_view color : turtle_art::kPalette) {
-    colors.call<void>("push", std::string(color));
+  for (const turtle_art::Rgb color : turtle_art::kPalette) {
+    colors.call<void>("push", turtle_art::CssColor(color));
   }
   return colors;
 }

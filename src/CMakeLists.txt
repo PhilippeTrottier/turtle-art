@@ -5,6 +5,7 @@ add_library(turtle_art_lib
   grid.cc
   grid_stats.cc
   layout.cc
+  palette.cc
   random_rules.cc
   rule_table.cc
   svg.cc
