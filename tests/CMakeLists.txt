@@ -7,6 +7,7 @@ add_executable(turtle_art_tests
   color_test.cc
   grid_stats_test.cc
   grid_test.cc
+  layout_test.cc
   random_rules_test.cc
   rule_table_test.cc
   svg_test.cc

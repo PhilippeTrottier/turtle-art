@@ -50,5 +50,12 @@ TEST(SvgTest, TileSouthEastOfCenterIsDrawnBelowAndHalfRight) {
   EXPECT_NE(ToSvg(grid).find("x=\"8.66\" y=\"15.00\""), std::string::npos);
 }
 
+TEST(SvgTest, SingleSquareTileIsATenUnitSquare) {
+  const std::string svg = ToSvg(Grid::Rectangle(1, 1));
+  EXPECT_NE(svg.find("viewBox=\"-5.00 -5.00 10.00 10.00\""), std::string::npos);
+  EXPECT_NE(svg.find("points=\"5.00,-5.00 5.00,5.00 -5.00,5.00 -5.00,-5.00\""),
+            std::string::npos);
+}
+
 }  // namespace
 }  // namespace turtle_art
