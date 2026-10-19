@@ -5,10 +5,10 @@ add_library(turtle_art_lib
   direction.cc
   grid.cc
   grid_stats.cc
-  hex.cc
   random_rules.cc
   rule_table.cc
   svg.cc
+  tile.cc
   turtle.cc)
 
 # PUBLIC: targets linking turtle_art_lib also get this include path, so they

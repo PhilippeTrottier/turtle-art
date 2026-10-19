@@ -8,7 +8,7 @@
 
 #include "color.h"
 #include "direction.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 
@@ -19,17 +19,17 @@ Grid::Grid(int radius, EdgeMode edge_mode)
   assert(radius >= 0);
 }
 
-bool Grid::Contains(Hex hex) const {
+bool Grid::Contains(Tile hex) const {
   return DistanceFromCenter(hex) <= radius_;
 }
 
-std::vector<Hex> Grid::Tiles() const {
-  std::vector<Hex> tiles;
+std::vector<Tile> Grid::Tiles() const {
+  std::vector<Tile> tiles;
   // Visit every (q, r) in the square that encloses the hexagon, and keep
   // those that are tiles of the grid.
   for (int r = -radius_; r <= radius_; ++r) {
     for (int q = -radius_; q <= radius_; ++q) {
-      const Hex hex = {.q = q, .r = r};
+      const Tile hex = {.q = q, .r = r};
       if (Contains(hex)) {
         tiles.push_back(hex);
       }
@@ -38,9 +38,9 @@ std::vector<Hex> Grid::Tiles() const {
   return tiles;
 }
 
-std::optional<Hex> Grid::NeighborOf(Hex hex, Direction direction) const {
+std::optional<Tile> Grid::NeighborOf(Tile hex, Direction direction) const {
   assert(Contains(hex));
-  const Hex next = Neighbor(hex, direction);
+  const Tile next = Neighbor(hex, direction);
   if (Contains(next)) {
     return next;
   }
@@ -50,15 +50,15 @@ std::optional<Hex> Grid::NeighborOf(Hex hex, Direction direction) const {
   return std::nullopt;
 }
 
-Hex Grid::Wrap(Hex hex) const {
+Tile Grid::Wrap(Tile hex) const {
   // Copies of the grid tile the whole plane when centered on "mirror
   // centers". The nearest six are rotations of {2R + 1, -R}. A tile just
   // outside the grid lies inside one of those copies; subtracting that
   // copy's center gives the matching tile of the grid itself. See
   // https://www.redblobgames.com/grids/hexagons/#wraparound
-  Hex mirror = {.q = (2 * radius_) + 1, .r = -radius_};
+  Tile mirror = {.q = (2 * radius_) + 1, .r = -radius_};
   for (int i = 0; i < 6; ++i) {
-    const Hex candidate = {.q = hex.q - mirror.q, .r = hex.r - mirror.r};
+    const Tile candidate = {.q = hex.q - mirror.q, .r = hex.r - mirror.r};
     if (Contains(candidate)) {
       return candidate;
     }
@@ -69,7 +69,7 @@ Hex Grid::Wrap(Hex hex) const {
   return hex;
 }
 
-Color Grid::ColorAt(Hex hex) const {
+Color Grid::ColorAt(Tile hex) const {
   assert(Contains(hex));
   // find() returns end() when the key is missing, without inserting it, as
   // operator[] would. `auto` lets the compiler spell the iterator type.
@@ -77,7 +77,7 @@ Color Grid::ColorAt(Hex hex) const {
   return it == colors_.end() ? Color::kUnpainted : it->second;
 }
 
-void Grid::Paint(Hex hex, Color color) {
+void Grid::Paint(Tile hex, Color color) {
   assert(Contains(hex));
   // operator[] inserts the key if missing, then assigns over its value.
   colors_[hex] = color;

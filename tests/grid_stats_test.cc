@@ -6,7 +6,7 @@
 
 #include "color.h"
 #include "grid.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 namespace {
@@ -18,9 +18,9 @@ TEST(GridStatsTest, UnpaintedGridCountsEveryTileAsUnpainted) {
 
 TEST(GridStatsTest, PaintedTilesAreCountedByColor) {
   Grid grid(1);
-  grid.Paint(Hex{}, Color::kPaint2);
-  grid.Paint(Hex{.q = 1, .r = 0}, Color::kPaint2);
-  grid.Paint(Hex{.q = -1, .r = 0}, Color::kPaint8);
+  grid.Paint(Tile{}, Color::kPaint2);
+  grid.Paint(Tile{.q = 1, .r = 0}, Color::kPaint2);
+  grid.Paint(Tile{.q = -1, .r = 0}, Color::kPaint8);
   EXPECT_EQ(ColorCounts(grid), (std::vector<int>{4, 0, 2, 0, 0, 0, 0, 0, 1}));
 }
 

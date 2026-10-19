@@ -7,7 +7,7 @@
 
 #include "color.h"
 #include "direction.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 
@@ -40,34 +40,34 @@ class Grid {  // NOLINT(bugprone-exception-escape)
   EdgeMode edge_mode() const { return edge_mode_; }
 
   // Returns whether `hex` is a tile of this grid.
-  bool Contains(Hex hex) const;
+  bool Contains(Tile hex) const;
 
   // Returns every tile of this grid, row by row: r from -radius to radius,
   // and within a row q from low to high. Outputs (SVG, the web explorer)
   // rely on this order.
-  std::vector<Hex> Tiles() const;
+  std::vector<Tile> Tiles() const;
 
   // Returns the tile one step from `hex` in `direction`, which must be a tile
   // of this grid. If the step leaves the grid, returns the tile it wraps to
   // with EdgeMode::kWrap, and std::nullopt (no tile) with EdgeMode::kStop.
-  std::optional<Hex> NeighborOf(Hex hex, Direction direction) const;
+  std::optional<Tile> NeighborOf(Tile hex, Direction direction) const;
 
   // Returns the color of `hex`, which must be a tile of this grid.
-  Color ColorAt(Hex hex) const;
+  Color ColorAt(Tile hex) const;
 
   // Sets the color of `hex`, which must be a tile of this grid.
-  void Paint(Hex hex, Color color);
+  void Paint(Tile hex, Color color);
 
  private:
   // Returns the tile of this grid that `hex`, a tile just outside the
   // edge, wraps to.
-  Hex Wrap(Hex hex) const;
+  Tile Wrap(Tile hex) const;
 
   int radius_;
   EdgeMode edge_mode_;
   // Only painted tiles are stored; a tile missing from the map is unpainted.
   // KISS: a map is simpler than turning hex coordinates into array indices.
-  std::map<Hex, Color> colors_;
+  std::map<Tile, Color> colors_;
 };
 
 }  // namespace turtle_art

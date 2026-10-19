@@ -8,8 +8,8 @@
 #include "color.h"
 #include "direction.h"
 #include "grid.h"
-#include "hex.h"
 #include "rule_table.h"
+#include "tile.h"
 
 namespace turtle_art {
 
@@ -20,7 +20,7 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
   std::vector<Color> sensed;
   const std::size_t not_visited_yet = history_length - 1 - previous_.size();
   sensed.insert(sensed.end(), not_visited_yet, Color::kUnpainted);
-  for (const Hex tile : previous_) {
+  for (const Tile tile : previous_) {
     sensed.push_back(grid.ColorAt(tile));
   }
   sensed.push_back(grid.ColorAt(position_));
@@ -45,7 +45,7 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
           : color_;
   grid.Paint(position_, paint);
 
-  const std::optional<Hex> next = grid.NeighborOf(position_, heading_);
+  const std::optional<Tile> next = grid.NeighborOf(position_, heading_);
   if (!next) {
     return false;
   }

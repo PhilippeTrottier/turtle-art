@@ -6,8 +6,8 @@
 #include "color.h"
 #include "direction.h"
 #include "grid.h"
-#include "hex.h"
 #include "rule_table.h"
+#include "tile.h"
 
 namespace turtle_art {
 
@@ -33,7 +33,7 @@ class Turtle {
       : paint_mode_(paint_mode) {}
 
   // Returns the tile the turtle stands on.
-  Hex position() const { return position_; }
+  Tile position() const { return position_; }
 
   // Returns the direction the turtle will move in.
   Direction heading() const { return heading_; }
@@ -54,14 +54,14 @@ class Turtle {
 
  private:
   PaintMode paint_mode_;
-  Hex position_;
+  Tile position_;
   Direction heading_ = Direction::kEast;
   Color color_ = Color::kPaint1;
   // The tiles visited before the current one, oldest first; at most
   // history length - 1 of them. std::deque is a sequence with fast insertion
   // and removal at both ends: new tiles go in at the back, old ones leave
   // from the front.
-  std::deque<Hex> previous_;
+  std::deque<Tile> previous_;
 };
 
 // Makes `turtle` take up to `max_steps` steps on `grid`, stopping early if

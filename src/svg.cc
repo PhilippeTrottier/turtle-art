@@ -9,8 +9,8 @@
 
 #include "color.h"
 #include "grid.h"
-#include "hex.h"
 #include "palette.h"
+#include "tile.h"
 
 namespace turtle_art {
 namespace {
@@ -42,7 +42,7 @@ constexpr std::array<Point, 6> kCorners = {{
 // Returns the center of `hex` in SVG coordinates, with the grid's center
 // tile at {0, 0}. See
 // https://www.redblobgames.com/grids/hexagons/#hex-to-pixel-axial
-Point CenterOf(Hex hex) {
+Point CenterOf(Tile hex) {
   return {.x = kTileWidth * (hex.q + (hex.r / 2.0)),
           .y = kTileSize * 1.5 * hex.r};
 }
@@ -80,7 +80,7 @@ std::string Header() {
 }
 
 // Returns one <use> element drawing `hex` in `color`.
-std::string Tile(Hex hex, Color color) {
+std::string TileElement(Tile hex, Color color) {
   const Point center = CenterOf(hex);
   return std::format(
       "  <use href=\"#t\" x=\"{:.2f}\" y=\"{:.2f}\" class=\"c{}\"/>\n",
@@ -102,8 +102,8 @@ std::string ToSvg(const Grid& grid) {
       2 * half_width, 2 * half_height, -half_width, -half_height,
       2 * half_width, 2 * half_height);
   svg += Header();
-  for (const Hex hex : grid.Tiles()) {
-    svg += Tile(hex, grid.ColorAt(hex));
+  for (const Tile hex : grid.Tiles()) {
+    svg += TileElement(hex, grid.ColorAt(hex));
   }
   svg += "</svg>\n";
   return svg;

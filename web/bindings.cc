@@ -16,8 +16,8 @@
 #include "art.h"
 #include "grid.h"
 #include "grid_stats.h"
-#include "hex.h"
 #include "palette.h"
+#include "tile.h"
 #include "turtle.h"
 
 namespace {
@@ -31,7 +31,7 @@ using emscripten::val;
 val Generate(const turtle_art::ArtSettings& settings) {
   const turtle_art::Grid grid = turtle_art::RunArt(settings);
   std::vector<std::uint8_t> colors;
-  for (const turtle_art::Hex hex : grid.Tiles()) {
+  for (const turtle_art::Tile hex : grid.Tiles()) {
     colors.push_back(static_cast<std::uint8_t>(grid.ColorAt(hex)));
   }
   val result = val::object();

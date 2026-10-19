@@ -6,53 +6,53 @@
 
 #include "color.h"
 #include "direction.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 namespace {
 
 TEST(GridTest, ContainsCenter) {
   const Grid grid(2);
-  EXPECT_TRUE(grid.Contains(Hex{}));
+  EXPECT_TRUE(grid.Contains(Tile{}));
 }
 
 TEST(GridTest, ContainsTileOnEdge) {
   const Grid grid(2);
-  EXPECT_TRUE(grid.Contains(Hex{.q = 2, .r = -2}));
+  EXPECT_TRUE(grid.Contains(Tile{.q = 2, .r = -2}));
 }
 
 TEST(GridTest, DoesNotContainTileBeyondEdge) {
   const Grid grid(2);
-  EXPECT_FALSE(grid.Contains(Hex{.q = 2, .r = 1}));
+  EXPECT_FALSE(grid.Contains(Tile{.q = 2, .r = 1}));
 }
 
 TEST(GridTest, RadiusZeroContainsOnlyCenter) {
   const Grid grid(0);
-  EXPECT_FALSE(grid.Contains(Hex{.q = 1, .r = 0}));
+  EXPECT_FALSE(grid.Contains(Tile{.q = 1, .r = 0}));
 }
 
 TEST(GridTest, TileStartsUnpainted) {
   const Grid grid(2);
-  EXPECT_EQ(grid.ColorAt(Hex{.q = 1, .r = 1}), Color::kUnpainted);
+  EXPECT_EQ(grid.ColorAt(Tile{.q = 1, .r = 1}), Color::kUnpainted);
 }
 
 TEST(GridTest, PaintedTileHasThatColor) {
   Grid grid(2);
-  grid.Paint(Hex{.q = 1, .r = 1}, Color::kPaint3);
-  EXPECT_EQ(grid.ColorAt(Hex{.q = 1, .r = 1}), Color::kPaint3);
+  grid.Paint(Tile{.q = 1, .r = 1}, Color::kPaint3);
+  EXPECT_EQ(grid.ColorAt(Tile{.q = 1, .r = 1}), Color::kPaint3);
 }
 
 TEST(GridTest, PaintingAgainReplacesColor) {
   Grid grid(2);
-  grid.Paint(Hex{}, Color::kPaint1);
-  grid.Paint(Hex{}, Color::kPaint2);
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint2);
+  grid.Paint(Tile{}, Color::kPaint1);
+  grid.Paint(Tile{}, Color::kPaint2);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint2);
 }
 
 TEST(GridTest, PaintingLeavesOtherTilesUnpainted) {
   Grid grid(2);
-  grid.Paint(Hex{}, Color::kPaint1);
-  EXPECT_EQ(grid.ColorAt(Hex{.q = 1, .r = 0}), Color::kUnpainted);
+  grid.Paint(Tile{}, Color::kPaint1);
+  EXPECT_EQ(grid.ColorAt(Tile{.q = 1, .r = 0}), Color::kUnpainted);
 }
 
 TEST(GridTest, RadiusOneHasSevenTiles) {
@@ -62,22 +62,22 @@ TEST(GridTest, RadiusOneHasSevenTiles) {
 
 TEST(GridTest, TilesStartWithTopRowFromLeft) {
   const Grid grid(1);
-  EXPECT_EQ(grid.Tiles().front(), (Hex{.q = 0, .r = -1}));
+  EXPECT_EQ(grid.Tiles().front(), (Tile{.q = 0, .r = -1}));
 }
 
 TEST(GridTest, TilesEndWithBottomRowAtRight) {
   const Grid grid(1);
-  EXPECT_EQ(grid.Tiles().back(), (Hex{.q = 0, .r = 1}));
+  EXPECT_EQ(grid.Tiles().back(), (Tile{.q = 0, .r = 1}));
 }
 
 TEST(GridTest, NeighborInsideGrid) {
   const Grid grid(2);
-  EXPECT_EQ(grid.NeighborOf(Hex{}, Direction::kEast), (Hex{.q = 1, .r = 0}));
+  EXPECT_EQ(grid.NeighborOf(Tile{}, Direction::kEast), (Tile{.q = 1, .r = 0}));
 }
 
 TEST(GridTest, StopEdgeHasNoNeighborBeyond) {
   const Grid grid(1, EdgeMode::kStop);
-  EXPECT_EQ(grid.NeighborOf(Hex{.q = 1, .r = 0}, Direction::kEast),
+  EXPECT_EQ(grid.NeighborOf(Tile{.q = 1, .r = 0}, Direction::kEast),
             std::nullopt);
 }
 
@@ -85,25 +85,25 @@ TEST(GridTest, StopEdgeHasNoNeighborBeyond) {
 // opposite (west) side, shifted by the hexagon's geometry.
 TEST(GridTest, WrapEdgeComesBackOnOppositeSide) {
   const Grid grid(1, EdgeMode::kWrap);
-  EXPECT_EQ(grid.NeighborOf(Hex{.q = 1, .r = 0}, Direction::kEast),
-            (Hex{.q = -1, .r = 1}));
+  EXPECT_EQ(grid.NeighborOf(Tile{.q = 1, .r = 0}, Direction::kEast),
+            (Tile{.q = -1, .r = 1}));
 }
 
 TEST(GridTest, WrapEdgeOnLargerGrid) {
   const Grid grid(2, EdgeMode::kWrap);
-  EXPECT_EQ(grid.NeighborOf(Hex{.q = 2, .r = 0}, Direction::kEast),
-            (Hex{.q = -2, .r = 2}));
+  EXPECT_EQ(grid.NeighborOf(Tile{.q = 2, .r = 0}, Direction::kEast),
+            (Tile{.q = -2, .r = 2}));
 }
 
 TEST(GridTest, WrapEdgeGoingBackReturnsToStart) {
   const Grid grid(1, EdgeMode::kWrap);
-  EXPECT_EQ(grid.NeighborOf(Hex{.q = -1, .r = 1}, Direction::kWest),
-            (Hex{.q = 1, .r = 0}));
+  EXPECT_EQ(grid.NeighborOf(Tile{.q = -1, .r = 1}, Direction::kWest),
+            (Tile{.q = 1, .r = 0}));
 }
 
 TEST(GridTest, WrapEdgeOnSingleTileReturnsToIt) {
   const Grid grid(0, EdgeMode::kWrap);
-  EXPECT_EQ(grid.NeighborOf(Hex{}, Direction::kNorthWest), Hex{});
+  EXPECT_EQ(grid.NeighborOf(Tile{}, Direction::kNorthWest), Tile{});
 }
 
 }  // namespace

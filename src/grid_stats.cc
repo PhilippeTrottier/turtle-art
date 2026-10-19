@@ -6,13 +6,13 @@
 
 #include "color.h"
 #include "grid.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 
 std::vector<int> ColorCounts(const Grid& grid) {
   std::vector<int> counts(kMaxPaintCount + 1, 0);
-  for (const Hex hex : grid.Tiles()) {
+  for (const Tile hex : grid.Tiles()) {
     // Color values are 0 to kMaxPaintCount, so the index is in range.
     ++counts[static_cast<std::size_t>(grid.ColorAt(hex))];
   }

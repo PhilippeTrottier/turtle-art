@@ -6,8 +6,8 @@
 #include "color.h"
 #include "direction.h"
 #include "grid.h"
-#include "hex.h"
 #include "rule_table.h"
+#include "tile.h"
 
 namespace turtle_art {
 namespace {
@@ -17,7 +17,7 @@ namespace {
 
 TEST(TurtleTest, StartsAtCenterHeadingEastWithPaint1) {
   const Turtle turtle;
-  EXPECT_EQ(turtle.position(), Hex{});
+  EXPECT_EQ(turtle.position(), Tile{});
   EXPECT_EQ(turtle.heading(), Direction::kEast);
   EXPECT_EQ(turtle.color(), Color::kPaint1);
 }
@@ -26,14 +26,14 @@ TEST(TurtleTest, StepPaintsTheTileItLeaves) {
   Grid grid(3);
   Turtle turtle;
   turtle.Step(grid, RuleTable());
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
 }
 
 TEST(TurtleTest, StepWithKeepMovesForward) {
   Grid grid(3);
   Turtle turtle;
   turtle.Step(grid, RuleTable());
-  EXPECT_EQ(turtle.position(), (Hex{.q = 1, .r = 0}));
+  EXPECT_EQ(turtle.position(), (Tile{.q = 1, .r = 0}));
 }
 
 TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
@@ -44,7 +44,7 @@ TEST(TurtleTest, StepWithTurnLeftTurnsThenMoves) {
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), Direction::kNorthEast);
-  EXPECT_EQ(turtle.position(), (Hex{.q = 1, .r = -1}));
+  EXPECT_EQ(turtle.position(), (Tile{.q = 1, .r = -1}));
 }
 
 TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
@@ -55,7 +55,7 @@ TEST(TurtleTest, StepWithTurnRightTurnsThenMoves) {
   Turtle turtle;
   turtle.Step(grid, rules);
   EXPECT_EQ(turtle.heading(), Direction::kSouthEast);
-  EXPECT_EQ(turtle.position(), (Hex{.q = 0, .r = 1}));
+  EXPECT_EQ(turtle.position(), (Tile{.q = 0, .r = 1}));
 }
 
 TEST(TurtleTest, StepWithChangeColorPaintsWithNextColor) {
@@ -65,13 +65,13 @@ TEST(TurtleTest, StepWithChangeColorPaintsWithNextColor) {
                   Action::kChangeColor);
   Turtle turtle;
   turtle.Step(grid, rules);
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint2);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint2);
   EXPECT_EQ(turtle.heading(), Direction::kEast);
 }
 
 TEST(TurtleTest, StepSensesColorOfCurrentTile) {
   Grid grid(3);
-  grid.Paint(Hex{}, Color::kPaint3);
+  grid.Paint(Tile{}, Color::kPaint3);
   RuleTable rules;
   rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kPaint3},
                   Action::kTurnRight);
@@ -107,29 +107,29 @@ TEST(TurtleTest, StepAtEdgePaintsButStaysPut) {
   Grid grid(0);
   Turtle turtle;
   EXPECT_FALSE(turtle.Step(grid, RuleTable()));
-  EXPECT_EQ(turtle.position(), Hex{});
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+  EXPECT_EQ(turtle.position(), Tile{});
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
 }
 
 TEST(TurtleTest, WalkTakesMaxSteps) {
   Grid grid(5);
   Turtle turtle;
   EXPECT_EQ(Walk(turtle, grid, RuleTable(), 3), 3);
-  EXPECT_EQ(turtle.position(), (Hex{.q = 3, .r = 0}));
+  EXPECT_EQ(turtle.position(), (Tile{.q = 3, .r = 0}));
 }
 
 TEST(TurtleTest, WalkStopsAtEdge) {
   Grid grid(1);
   Turtle turtle;
   EXPECT_EQ(Walk(turtle, grid, RuleTable(), 10), 2);
-  EXPECT_EQ(turtle.position(), (Hex{.q = 1, .r = 0}));
+  EXPECT_EQ(turtle.position(), (Tile{.q = 1, .r = 0}));
 }
 
 TEST(TurtleTest, StepAtWrappingEdgeComesBackOnOppositeSide) {
   Grid grid(0, EdgeMode::kWrap);
   Turtle turtle;
   EXPECT_TRUE(turtle.Step(grid, RuleTable()));
-  EXPECT_EQ(turtle.position(), Hex{});
+  EXPECT_EQ(turtle.position(), Tile{});
 }
 
 TEST(TurtleTest, WalkOnWrappingGridTakesAllSteps) {
@@ -175,23 +175,23 @@ TEST(TurtleTest, CycleModePaintsUnpaintedTileWithPaint1) {
   Grid grid(3);
   Turtle turtle(PaintMode::kCycle);
   turtle.Step(grid, RuleTable());
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
 }
 
 TEST(TurtleTest, CycleModeAdvancesPaintedTileToNextColor) {
   Grid grid(3);
-  grid.Paint(Hex{}, Color::kPaint2);
+  grid.Paint(Tile{}, Color::kPaint2);
   Turtle turtle(PaintMode::kCycle);
   turtle.Step(grid, RuleTable());
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint3);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint3);
 }
 
 TEST(TurtleTest, CycleModeWrapsLastPaintToPaint1) {
   Grid grid(3);
-  grid.Paint(Hex{}, Color::kPaint2);
+  grid.Paint(Tile{}, Color::kPaint2);
   Turtle turtle(PaintMode::kCycle);
   turtle.Step(grid, RuleTable(2, 3));
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
 }
 
 TEST(TurtleTest, CycleModeIgnoresChangeColor) {
@@ -201,7 +201,7 @@ TEST(TurtleTest, CycleModeIgnoresChangeColor) {
                   Action::kChangeColor);
   Turtle turtle(PaintMode::kCycle);
   turtle.Step(grid, rules);
-  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+  EXPECT_EQ(grid.ColorAt(Tile{}), Color::kPaint1);
 }
 
 }  // namespace

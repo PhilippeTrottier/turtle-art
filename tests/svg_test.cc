@@ -6,7 +6,7 @@
 
 #include "color.h"
 #include "grid.h"
-#include "hex.h"
+#include "tile.h"
 
 namespace turtle_art {
 namespace {
@@ -36,7 +36,7 @@ TEST(SvgTest, SingleUnpaintedTile) {
 
 TEST(SvgTest, PaintedTileUsesItsColorClass) {
   Grid grid(0);
-  grid.Paint(Hex{}, Color::kPaint3);
+  grid.Paint(Tile{}, Color::kPaint3);
   EXPECT_NE(ToSvg(grid).find("class=\"c3\""), std::string::npos);
 }
 
