@@ -11,15 +11,26 @@
 
 namespace turtle_art {
 
+// What color the turtle paints each tile it leaves.
+enum class PaintMode {
+  // The turtle's current color (changed by Action::kChangeColor).
+  kTurtleColor,
+  // The palette color after the tile's own, as in Langton's ant: every
+  // visit changes the tile, so revisited areas keep evolving. The turtle's
+  // own color is not used, so Action::kChangeColor has no visible effect.
+  kCycle,
+};
+
 // The turtle that walks the grid and paints it. See "The walk" in README.md.
 //
 // The grid and the rules are passed to Step() rather than stored, so a test
 // can set up any grid and rule table it needs and inspect them afterwards.
 class Turtle {
  public:
-  // Creates a turtle on the center tile, heading east, painting with
-  // kPaint1, that has not visited any tile before.
-  Turtle() = default;
+  // Creates a turtle on the center tile, heading east, with color kPaint1,
+  // that has not visited any tile before and paints as `paint_mode` says.
+  explicit Turtle(PaintMode paint_mode = PaintMode::kTurtleColor)
+      : paint_mode_(paint_mode) {}
 
   // Returns the tile the turtle stands on.
   Hex position() const { return position_; }
@@ -32,7 +43,8 @@ class Turtle {
 
   // Takes one step: senses the colors of the last rules.history_length()
   // tiles, applies the action `rules` gives for them (changing color cycles
-  // through rules.paint_count() paints), paints the current tile, and moves one
+  // through rules.paint_count() paints), paints the current tile as the
+  // paint mode says, and moves one
   // tile forward, wrapping around if `grid` wraps. If the move would leave a
   // grid that does not wrap, the turtle stays put and Step returns false;
   // otherwise it returns true.
@@ -41,6 +53,7 @@ class Turtle {
   bool Step(Grid& grid, const RuleTable& rules);
 
  private:
+  PaintMode paint_mode_;
   Hex position_;
   Direction heading_ = Direction::kEast;
   Color color_ = Color::kPaint1;

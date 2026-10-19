@@ -6,6 +6,7 @@
 
 #include "grid.h"
 #include "rule_table.h"
+#include "turtle.h"
 
 namespace turtle_art {
 
@@ -25,6 +26,8 @@ struct ArtSettings {
   // Number of recent tiles, the current one included, whose colors decide
   // each action, in [1, kMaxHistoryLength].
   int history_length = kDefaultHistoryLength;
+  // How the turtle colors tiles: its own color, or each tile's next color.
+  PaintMode paint_mode = PaintMode::kTurtleColor;
 };
 
 // Runs a turtle with a rule table made from the settings on a fresh grid,

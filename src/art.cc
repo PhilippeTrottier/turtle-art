@@ -14,7 +14,7 @@ Grid RunArt(const ArtSettings& settings) {
   const RuleTable rules = RandomRuleTable(settings.seed, settings.paint_count,
                                           settings.history_length);
   Grid grid(settings.radius, settings.edge_mode);
-  Turtle turtle;
+  Turtle turtle(settings.paint_mode);
   Walk(turtle, grid, rules, settings.steps);
   return grid;
 }

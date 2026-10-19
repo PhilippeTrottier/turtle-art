@@ -171,5 +171,38 @@ TEST(TurtleTest, ChangeColorWithOnePaintKeepsPaint1) {
   EXPECT_EQ(turtle.color(), Color::kPaint1);
 }
 
+TEST(TurtleTest, CycleModePaintsUnpaintedTileWithPaint1) {
+  Grid grid(3);
+  Turtle turtle(PaintMode::kCycle);
+  turtle.Step(grid, RuleTable());
+  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+}
+
+TEST(TurtleTest, CycleModeAdvancesPaintedTileToNextColor) {
+  Grid grid(3);
+  grid.Paint(Hex{}, Color::kPaint2);
+  Turtle turtle(PaintMode::kCycle);
+  turtle.Step(grid, RuleTable());
+  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint3);
+}
+
+TEST(TurtleTest, CycleModeWrapsLastPaintToPaint1) {
+  Grid grid(3);
+  grid.Paint(Hex{}, Color::kPaint2);
+  Turtle turtle(PaintMode::kCycle);
+  turtle.Step(grid, RuleTable(2, 3));
+  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+}
+
+TEST(TurtleTest, CycleModeIgnoresChangeColor) {
+  Grid grid(3);
+  RuleTable rules;
+  rules.SetAction({Color::kUnpainted, Color::kUnpainted, Color::kUnpainted},
+                  Action::kChangeColor);
+  Turtle turtle(PaintMode::kCycle);
+  turtle.Step(grid, rules);
+  EXPECT_EQ(grid.ColorAt(Hex{}), Color::kPaint1);
+}
+
 }  // namespace
 }  // namespace turtle_art

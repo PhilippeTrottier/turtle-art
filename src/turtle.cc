@@ -39,7 +39,11 @@ bool Turtle::Step(Grid& grid, const RuleTable& rules) {
       break;
   }
 
-  grid.Paint(position_, color_);
+  const Color paint =
+      paint_mode_ == PaintMode::kCycle
+          ? NextPaint(grid.ColorAt(position_), rules.paint_count())
+          : color_;
+  grid.Paint(position_, paint);
 
   const std::optional<Hex> next = grid.NeighborOf(position_, heading_);
   if (!next) {

@@ -4,6 +4,7 @@
 
 #include "grid.h"
 #include "svg.h"
+#include "turtle.h"
 
 namespace turtle_art {
 namespace {
@@ -41,6 +42,14 @@ TEST(ArtTest, HistoryLengthChangesTheImage) {
   EXPECT_NE(
       MakeArt({.seed = 3, .steps = 200, .radius = 5}),
       MakeArt({.seed = 3, .steps = 200, .radius = 5, .history_length = 2}));
+}
+
+TEST(ArtTest, PaintModeChangesTheImage) {
+  EXPECT_NE(MakeArt({.seed = 3, .steps = 200, .radius = 5}),
+            MakeArt({.seed = 3,
+                     .steps = 200,
+                     .radius = 5,
+                     .paint_mode = PaintMode::kCycle}));
 }
 
 }  // namespace

@@ -11,6 +11,7 @@
 #include "color.h"
 #include "grid.h"
 #include "rule_table.h"
+#include "turtle.h"
 
 // clang-tidy warns that exceptions may escape main. Apart from the CLI11
 // parse errors caught below, the only ones possible are failures such as
@@ -41,6 +42,15 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
                  "At the grid's edge: stop the walk, or wrap around")
       ->transform(CLI::CheckedTransformer(edge_modes))
       ->default_str("wrap");
+  const std::map<std::string, turtle_art::PaintMode> paint_modes = {
+      {"turtle", turtle_art::PaintMode::kTurtleColor},
+      {"cycle", turtle_art::PaintMode::kCycle},
+  };
+  app.add_option("--paint", settings.paint_mode,
+                 "Paint tiles with the turtle's color, or cycle each tile to "
+                 "its next color (Langton's ant style)")
+      ->transform(CLI::CheckedTransformer(paint_modes))
+      ->default_str("turtle");
   app.add_option("--colors", settings.paint_count,
                  "Number of palette colors the turtle paints with")
       ->capture_default_str()
