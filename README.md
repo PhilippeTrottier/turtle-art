@@ -34,9 +34,10 @@ directions) and a **current color**. Each step:
 3. **Paint** the current tile with the current color.
 4. **Move** one tile forward along the heading.
 
-The run ends after `--steps` steps. With `--edge stop` (the default) it ends
-earlier if the next move would leave the grid; with `--edge wrap` the move
-comes back in on the opposite side of the hexagon instead.
+The run ends after `--steps` steps. With `--edge wrap` (the default) a move
+off the grid comes back in on the opposite side of the hexagon; with
+`--edge stop` the run ends early instead, when the next move would leave the
+grid.
 
 Note: a turtle that only turns by 60° cannot come back to a tile in fewer than
 6 moves (except on small wrapping grids, where wrapping around can bring it
@@ -76,17 +77,19 @@ feeds back into the walk, as in
 
 | Option     | Meaning                                  | Default          |
 |------------|------------------------------------------|------------------|
-| `--seed`   | Seed for the rule table                  | `228`            |
+| `--seed`   | Seed for the rule table                  | `30`             |
 | `--steps`  | Maximum number of steps                  | `10000`          |
 | `--radius` | Grid radius in tiles                     | `50`             |
-| `--edge`   | At the edge: `stop` the walk, or `wrap` around to the opposite side | `stop` |
+| `--edge`   | At the edge: `wrap` around to the opposite side, or `stop` the walk | `wrap` |
 | `--colors` | Number of palette colors, 1 to 8         | `4`              |
 | `--history`| Number of recent tiles (current one included) whose colors decide each move, 1 to 6 | `3` |
 | `--out`    | Path of the SVG file to write            | `turtle-art.svg` |
 
-`--help` lists them too. The default seed is one whose turtle covers a large
-area; with `--edge stop`, most seeds walk off the edge or loop on a few
-tiles within a few hundred steps (see QUESTIONS.md).
+`--help` lists them too. Wrapping is the default edge because with
+`--edge stop` most turtles walk off the grid within a few dozen steps. Even
+so, most seeds give dull pictures (a few looping tiles, or one flat color);
+the default seed is one of the good ones, and the
+[web explorer](#web-explorer) finds others quickly.
 
 ## Building and testing
 

@@ -22,12 +22,14 @@ TEST(ArtTest, ZeroStepsGiveUnpaintedGrid) {
   EXPECT_EQ(MakeArt({.seed = 3, .steps = 0, .radius = 2}), ToSvg(Grid(2)));
 }
 
-TEST(ArtTest, WrappingChangesTheImage) {
-  EXPECT_NE(MakeArt({.seed = 1, .steps = 200, .radius = 3}),
-            MakeArt({.seed = 1,
-                     .steps = 200,
-                     .radius = 3,
-                     .edge_mode = EdgeMode::kWrap}));
+TEST(ArtTest, EdgeModeChangesTheImage) {
+  EXPECT_NE(
+      MakeArt(
+          {.seed = 1, .steps = 200, .radius = 3, .edge_mode = EdgeMode::kStop}),
+      MakeArt({.seed = 1,
+               .steps = 200,
+               .radius = 3,
+               .edge_mode = EdgeMode::kWrap}));
 }
 
 TEST(ArtTest, PaintCountChangesTheImage) {

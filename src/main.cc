@@ -40,7 +40,7 @@ int main(int argc, char** argv) {  // NOLINT(bugprone-exception-escape)
   app.add_option("--edge", settings.edge_mode,
                  "At the grid's edge: stop the walk, or wrap around")
       ->transform(CLI::CheckedTransformer(edge_modes))
-      ->default_str("stop");
+      ->default_str("wrap");
   app.add_option("--colors", settings.paint_count,
                  "Number of palette colors the turtle paints with")
       ->capture_default_str()

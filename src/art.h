@@ -12,12 +12,14 @@ namespace turtle_art {
 // Everything that decides what a picture looks like. The defaults are the
 // command line's defaults.
 struct ArtSettings {
-  // Seed for the rule table. 228 is one of the few seeds below 300 whose
-  // turtle covers a large area instead of looping on a few tiles.
-  std::uint32_t seed = 228;
+  // Seed for the rule table. With the other defaults, 30 draws long straight
+  // lines wrapping around a dense knot; most seeds are far less interesting.
+  std::uint32_t seed = 30;
   int steps = 10000;  // Maximum number of turtle steps.
   int radius = 50;    // Grid radius in tiles; must be zero or more.
-  EdgeMode edge_mode = EdgeMode::kStop;  // What happens at the grid's edge.
+  // What happens at the grid's edge. Wrapping is the default because with
+  // kStop most turtles walk off the grid within a few dozen steps.
+  EdgeMode edge_mode = EdgeMode::kWrap;
   // Number of palette colors, in [1, kMaxPaintCount].
   int paint_count = kDefaultPaintCount;
   // Number of recent tiles, the current one included, whose colors decide
