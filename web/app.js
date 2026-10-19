@@ -595,7 +595,7 @@ const CARPET = {
 const CARPET_MIN_INTEREST = 1.0;
 const CARPET_PERIOD_MS = 10000;  // Per picture, fades included.
 const CARPET_FADE_MS = 1000;     // As #carpetArt's transition in index.html.
-const CARPET_PIXELS_PER_TILE = 2;
+const CARPET_PIXELS_PER_TILE = 3;
 // The palette with black for unpainted tiles, which suits a dark carpet.
 const CARPET_RGB = [[0, 0, 0], ...PALETTE_RGB.slice(1)];
 

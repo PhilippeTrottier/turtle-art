@@ -254,7 +254,7 @@ Using it:
   every 10 seconds, fading through black (1 second out, 1 second in). Each
   is a random seed with interest of at least 1.0, at fixed settings (golden
   rectangle of 89 rows, 155,000 steps, 4 colors, history 2, wrap, turtle).
-  Every tile is exactly 2 x 2 screen pixels, unsmoothed, like a PNG 2×, and
+  Every tile is exactly 3 x 3 screen pixels, unsmoothed, like a PNG 3×, and
   unpainted tiles are black instead of cream. Same keys as the screensaver.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as

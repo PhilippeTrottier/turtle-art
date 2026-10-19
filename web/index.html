@@ -87,6 +87,10 @@
       overflow: clip;  /* Never scrolls, see #screensaver. */
     }
     #carpet[hidden] { display: none; }
+    /* While the carpet or the screensaver covers the page, the page behind
+       it must not scroll, or its scrollbar shows over the art. :has() picks
+       the page by what it contains. */
+    html:has(#carpet:not([hidden]), #screensaver:not([hidden])) { overflow: hidden; }
     /* The picture, repeated over the whole window. `pixelated` enlarges each
        tile into a crisp square instead of blurring it. It fades through
        black (#carpet's background) between pictures. */
