@@ -207,8 +207,11 @@ Using it:
 - **▶ Slideshow** (`s`) shows a new picture every 30 seconds, drawn step by
   step at 10 steps per second from a clear grid: a random seed with interest
   above 0.95, at fixed settings (hexagon radius 9, 300 steps, 4 colors,
-  history 2, wrap, turtle). `n` skips to the next picture, `f` favorites
-  the current one, `Esc` exits.
+  history 2, wrap, turtle). Dimmed copies of the picture surround it, one
+  per side of the hexagon, so a turtle wrapping off one side can be
+  followed into the next copy; they are only for show (clipped, never
+  scrolled). `n` skips to the next picture, `f` favorites the current one,
+  `Esc` exits.
 - ☆ / `f` saves a favorite in this browser (localStorage). `g` or
   **★ Favorites** shows them; **Copy as commands** copies them all as
   `turtle-art` command lines.
@@ -262,7 +265,7 @@ Read `src/` in this order; each file uses only the ones above it. Every
 | `color.h`         | `Color`: unpainted plus up to 8 paints, `NextPaint`        |
 | `palette.h`       | `kPalette`: the CSS color of each `Color`                  |
 | `grid.h`          | `EdgeMode`, `GridShape` and `Grid`: `Hexagon(radius)` or `Rectangle(width, height)`, `Tiles`, numbered directions, `NeighborOf` (stop or wrap), `ColorAt`, `Paint` |
-| `layout.h`        | `TileCenter`, `TileOutline`, `PictureBounds`: where tiles go in a picture |
+| `layout.h`        | `TileCenter`, `TileOutline`, `PictureBounds`, `WrapCopyOffsets`: where tiles (and wrap copies) go in a picture |
 | `grid_stats.h`    | `ColorCounts` and `Entropy`: how interesting a grid is     |
 | `action.h`        | `Action`: keep, turn left, turn right, change color        |
 | `rule_table.h`    | `RuleTable`: sensed colors (any history length) → action   |
