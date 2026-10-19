@@ -38,10 +38,9 @@ val Generate(const turtle_art::ArtSettings& settings) {
   // view dies with `colors` when this function returns, so we copy it into
   // a new Uint8Array that JavaScript owns.
   result.set("colors", val::global("Uint8Array")
-                           .new_(emscripten::typed_memory_view(
-                               colors.size(), colors.data())));
-  result.set("entropy",
-             turtle_art::Entropy(turtle_art::ColorCounts(grid)));
+                           .new_(emscripten::typed_memory_view(colors.size(),
+                                                               colors.data())));
+  result.set("entropy", turtle_art::Entropy(turtle_art::ColorCounts(grid)));
   return result;
 }
 
