@@ -212,7 +212,10 @@ Using it:
 - The **shape** is a hexagon (sized by radius), a golden rectangle or a
   square (both of square tiles, sized by **rows**, a Fibonacci number). A
   golden rectangle is the next Fibonacci number wide, e.g. 21 rows by 34
-  columns: consecutive Fibonacci numbers approach the golden ratio.
+  columns: consecutive Fibonacci numbers approach the golden ratio. Rows go
+  from 5 up to 610 (610 x 987, about 600,000 tiles). Big grids need many
+  more steps (millions) before most pictures pass the interest filter, and
+  drawing them takes the page noticeably longer.
 - The header holds the knobs, a start seed (🎲 or `r` for a random one), a
   **min interest** filter and the thumbnail size. Settings live in the URL,
   so a view can be bookmarked or shared.
