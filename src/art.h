@@ -26,8 +26,10 @@ struct ArtSettings {
 };
 
 // Runs a turtle with a rule table made from the settings on a fresh grid,
-// and returns the result as an SVG image. The same settings always give the
-// same image.
+// and returns the painted grid. The same settings always give the same grid.
+Grid RunArt(const ArtSettings& settings);
+
+// Returns RunArt(settings) as an SVG image.
 std::string MakeArt(const ArtSettings& settings);
 
 }  // namespace turtle_art

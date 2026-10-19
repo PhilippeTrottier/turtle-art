@@ -19,7 +19,12 @@ enum class EdgeMode {
 
 // A hexagon-shaped grid of tiles: every tile within `radius` steps of the
 // center {0, 0}. Each tile has a color; tiles start unpainted.
-class Grid {
+//
+// The NOLINT: clang-tidy expects moving an object never to throw, but with
+// MSVC moving a std::map allocates memory, so Grid's compiler-written move
+// constructor could throw std::bad_alloc. Running out of memory ends the
+// program anyway, which is our policy for code without exceptions.
+class Grid {  // NOLINT(bugprone-exception-escape)
  public:
   // Creates a grid of the given radius, all unpainted. `radius` must be
   // zero or more; a radius of 0 is the center tile alone.
