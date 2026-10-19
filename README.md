@@ -18,7 +18,7 @@ turtle-art --seed 42 --steps 10000 --radius 50 --out art.svg
 
 ### The walk
 
-The turtle has a **position** (a tile), a **heading** (one of the 6 neighbour
+The turtle has a **position** (a tile), a **heading** (one of the 6 neighbor
 directions) and a **current color**. Each step:
 
 1. **Sense** — read the grid colors of the last H tiles visited (`--history`,
@@ -70,7 +70,7 @@ feeds back into the walk, as in
   ([reference](https://www.redblobgames.com/grids/hexagons/#wraparound)).
 - Tiles are addressed with **axial hex coordinates**
   ([reference](https://www.redblobgames.com/grids/hexagons/)), which keep
-  neighbour and distance math simple.
+  neighbor and distance math simple.
 
 ### Command-line options
 
@@ -319,7 +319,7 @@ Style notes that follow from the Google guide:
 
 ## Out of scope (for now)
 
-- High-performance optimisation (SIMD/SSE, multithreading, cache tuning, …).
+- High-performance optimization (SIMD/SSE, multithreading, cache tuning, …).
 - Live animation of the walk (the explorer shows finished pictures).
 - User-written rule tables; rules come from a seed.
 - Favorites shared across browsers or people (they live in one browser).

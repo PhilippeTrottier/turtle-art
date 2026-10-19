@@ -9,7 +9,7 @@
 #   readability-magic-numbers            flags every literal in tests.
 #   bugprone-easily-swappable-parameters flags any two same-typed parameters.
 #   performance-enum-size                asks for 1-byte enums; v1 does not
-#                                        optimise for size or speed.
+#                                        optimize for size or speed.
 #   modernize-use-nodiscard              asks for [[nodiscard]] on every const
 #                                        getter, which buries the code.
 Checks: >
